@@ -5,6 +5,7 @@ export type MessageRole = "user" | "assistant"
 export interface MentorMessage {
   role: MessageRole
   content: string
+  isStreaming?: boolean
 }
 
 export interface SessionState {

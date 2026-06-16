@@ -33,6 +33,10 @@ export function ChatThread({ messages, isLoading }: ChatThreadProps) {
     )
   }
 
+  // Show the bouncing dots only when waiting for the very first token
+  const hasStreamingMessage = messages.some((m) => m.isStreaming)
+  const showDots = isLoading && !hasStreamingMessage
+
   return (
     <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
       {messages.map((msg, i) => (
@@ -48,16 +52,21 @@ export function ChatThread({ messages, isLoading }: ChatThreadProps) {
             }`}
           >
             {msg.content}
+            {/* Blinking cursor on the actively streaming message */}
+            {msg.isStreaming && (
+              <span className="inline-block w-0.5 h-3 bg-zinc-500 dark:bg-zinc-400 ml-0.5 align-middle animate-pulse" />
+            )}
           </div>
         </div>
       ))}
 
-      {isLoading && (
+      {/* Bouncing dots — only before the first token arrives */}
+      {showDots && (
         <div className="flex flex-col gap-1 items-start">
           <span className="text-[10px] font-semibold tracking-wider text-zinc-400 uppercase px-1">
             BaseCase
           </span>
-          <div className="bg-zinc-100 border border-zinc-200 rounded-xl rounded-bl-sm px-3 py-2.5">
+          <div className="bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl rounded-bl-sm px-3 py-2.5">
             <div className="flex gap-1 items-center">
               {[0, 1, 2].map((i) => (
                 <span

@@ -9,6 +9,9 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@langchain/core": "^1.1.49",
+    "@langchain/langgraph-sdk": "^1.9.22",
+    "@langchain/react": "^1.0.23",
     "@monaco-editor/react": "^4.7.0",
     "@radix-ui/react-separator": "^1.1.8",
     "@radix-ui/react-slot": "^1.2.4",

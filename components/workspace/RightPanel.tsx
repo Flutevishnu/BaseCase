@@ -2,18 +2,25 @@
 
 import { Problem } from "@/types/mentor"
 import { useSessionStore } from "@/stores/sessionStore"
-import { useSubmit } from "@/hooks/useSubmit"
+import { useMentorStream } from "@/hooks/useMentorStream"
 import { LockedOverlay } from "@/components/ui/LockedOverlay"
 import { CodeEditor } from "./CodeEditor"
 import { ReviewPanel } from "./ReviewPanel"
 
 interface RightPanelProps {
   problem: Problem
+  stream: ReturnType<typeof useMentorStream>
 }
 
-export function RightPanel({ problem }: RightPanelProps) {
-  const { phase, isLoading } = useSessionStore()
-  const { submit } = useSubmit(problem.description)
+export function RightPanel({ problem, stream }: RightPanelProps) {
+  const { phase, isLoading: sessionLoading } = useSessionStore()
+  const { submitCode, isLoading: streamLoading, mentorMessages } = stream
+
+  const isLoading = sessionLoading || streamLoading
+
+  // The latest AI message is the review content when in REVIEW phase
+  const lastAiMessage = [...mentorMessages].reverse().find((m) => m.role === "assistant")
+  const reviewContent = lastAiMessage?.content ?? ""
 
   return (
     <div className="flex flex-col h-full overflow-hidden bg-white dark:bg-zinc-950 transition-colors">
@@ -50,10 +57,10 @@ export function RightPanel({ problem }: RightPanelProps) {
         </div>
       </div>
 
-      {/* Phase-driven content — one source of truth */}
+      {/* Phase-driven content */}
       {phase === "IDEATION" && <LockedOverlay />}
-      {phase === "CODING" && <CodeEditor onSubmit={submit} isLoading={isLoading} />}
-      {phase === "REVIEW" && <ReviewPanel />}
+      {phase === "CODING" && <CodeEditor onSubmit={submitCode} isLoading={isLoading} />}
+      {phase === "REVIEW" && <ReviewPanel reviewContent={reviewContent} isStreaming={streamLoading} />}
     </div>
   )
 }
