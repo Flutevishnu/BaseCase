@@ -2,6 +2,12 @@
 
 import { useEffect, useRef } from "react"
 import { MentorMessage } from "@/types/mentor"
+import { MermaidDiagram } from "./MermaidDiagram"
+import { ArrayVisualizer } from "./ArrayVisualizer"
+import { LinkedListVisualizer } from "./LinkedListVisualizer"
+import { TreeVisualizer } from "./TreeVisualizer"
+import { MatrixVisualizer } from "./MatrixVisualizer"
+import { HashmapVisualizer } from "./HashmapVisualizer"
 
 interface ChatThreadProps {
   messages: MentorMessage[]
@@ -37,28 +43,71 @@ export function ChatThread({ messages, isLoading }: ChatThreadProps) {
   const hasStreamingMessage = messages.some((m) => m.isStreaming)
   const showDots = isLoading && !hasStreamingMessage
 
+  const parseContentWithMermaid = (content: string) => {
+    const parts = []
+    const regex = /```mermaid\n([\s\S]*?)```/g
+    let lastIndex = 0
+    let match
+    let id = 0
+
+    while ((match = regex.exec(content)) !== null) {
+      if (match.index > lastIndex) {
+        parts.push(
+          <span key={id++} className="whitespace-pre-wrap">
+            {content.slice(lastIndex, match.index)}
+          </span>
+        )
+      }
+      parts.push(<MermaidDiagram key={id++} code={match[1].trim()} />)
+      lastIndex = regex.lastIndex
+    }
+
+    if (lastIndex < content.length) {
+      parts.push(
+        <span key={id++} className="whitespace-pre-wrap">
+          {content.slice(lastIndex)}
+        </span>
+      )
+    }
+
+    return parts
+  }
+
   return (
     <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
-      {messages.map((msg, i) => (
-        <div key={i} className={`flex flex-col gap-1 ${msg.role === "user" ? "items-end" : "items-start"}`}>
-          <span className="text-[10px] font-semibold tracking-wider text-zinc-400 dark:text-zinc-500 uppercase px-1">
-            {msg.role === "user" ? "You" : "BaseCase"}
-          </span>
-          <div
-            className={`max-w-[88%] text-xs leading-relaxed px-3 py-2.5 rounded-xl ${
-              msg.role === "user"
+      {messages
+        .filter((msg) => msg.role === "user" || msg.content.trim() || msg.visualization)
+        .map((msg, i) => (
+          <div key={i} className={`flex flex-col gap-1 ${msg.role === "user" ? "items-end" : "items-start"}`}>
+            <span className="text-[10px] font-semibold tracking-wider text-zinc-400 dark:text-zinc-500 uppercase px-1">
+              {msg.role === "user" ? "You" : "BaseCase"}
+            </span>
+            <div
+              className={`max-w-[88%] text-xs leading-relaxed px-3 py-2.5 rounded-xl ${msg.role === "user"
                 ? "bg-violet-600 dark:bg-violet-600 text-white rounded-br-sm"
                 : "bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-100 rounded-bl-sm border border-zinc-200 dark:border-zinc-700"
-            }`}
-          >
-            {msg.content}
-            {/* Blinking cursor on the actively streaming message */}
-            {msg.isStreaming && (
-              <span className="inline-block w-0.5 h-3 bg-zinc-500 dark:bg-zinc-400 ml-0.5 align-middle animate-pulse" />
-            )}
+                }`}
+            >
+              {msg.role === "assistant" && msg.content.includes("```mermaid")
+                ? parseContentWithMermaid(msg.content)
+                : <span className="whitespace-pre-wrap">{msg.content}</span>}
+
+              {msg.isStreaming && (
+                <span className="inline-block w-0.5 h-3 bg-zinc-500 dark:bg-zinc-400 ml-0.5 align-middle animate-pulse" />
+              )}
+
+              {msg.visualization && (
+                <>
+                  {msg.visualization.viz_type === "array" && <ArrayVisualizer data={msg.visualization} />}
+                  {msg.visualization.viz_type === "linked_list" && <LinkedListVisualizer data={msg.visualization} />}
+                  {msg.visualization.viz_type === "binary_tree" && <TreeVisualizer data={msg.visualization} />}
+                  {msg.visualization.viz_type === "matrix" && <MatrixVisualizer data={msg.visualization} />}
+                  {msg.visualization.viz_type === "hashmap" && <HashmapVisualizer data={msg.visualization} />}
+                </>
+              )}
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
 
       {/* Bouncing dots — only before the first token arrives */}
       {showDots && (

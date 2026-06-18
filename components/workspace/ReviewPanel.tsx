@@ -1,16 +1,32 @@
 "use client"
 
 import { useSessionStore } from "@/stores/sessionStore"
+import { useRouter } from "next/navigation"
+
+export interface CodeReviewData {
+  correctness?: string
+  complexity?: string
+  style?: string
+  improvement?: string
+  [key: string]: string | undefined
+}
 
 interface ReviewPanelProps {
-  reviewContent: string
+  reviewContent: CodeReviewData | string | null
   isStreaming?: boolean
 }
 
 export function ReviewPanel({ reviewContent, isStreaming }: ReviewPanelProps) {
   const { setPhase, reset } = useSessionStore()
+  const router = useRouter()
 
   const sections = parseReview(reviewContent)
+  
+  const fallbackText = typeof reviewContent === "string" 
+    ? reviewContent 
+    : reviewContent 
+      ? JSON.stringify(reviewContent, null, 2) 
+      : ""
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-white dark:bg-zinc-950 transition-colors">
@@ -50,7 +66,7 @@ export function ReviewPanel({ reviewContent, isStreaming }: ReviewPanelProps) {
           ))
         ) : (
           <div className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed whitespace-pre-wrap">
-            {reviewContent}
+            {fallbackText}
             {isStreaming && (
               <span className="inline-block w-0.5 h-3 bg-zinc-500 dark:bg-zinc-400 ml-0.5 align-middle animate-pulse" />
             )}
@@ -60,11 +76,11 @@ export function ReviewPanel({ reviewContent, isStreaming }: ReviewPanelProps) {
 
       <div className="px-5 py-4 border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 flex items-center gap-3 transition-colors">
         <button
-          onClick={() => setPhase("CODING")}
+          onClick={() => router.push("/")}
           disabled={isStreaming}
           className="flex-1 text-xs font-semibold py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
         >
-          Back to Editor
+          Home Page
         </button>
         <button
           onClick={reset}
@@ -84,47 +100,28 @@ interface ReviewSection {
   color: string
 }
 
-function parseReview(content: string): ReviewSection[] {
+function parseReview(content: CodeReviewData | string | null): ReviewSection[] {
   if (!content) return []
 
-  const sectionMap: Record<string, string> = {
-    "Correctness": "text-emerald-400",
-    "Complexity": "text-violet-400",
-    "Style": "text-amber-400",
-    "One thing to improve": "text-red-400",
+  // Fallback for legacy string data
+  if (typeof content === "string") {
+    return [{ title: "Feedback", content, color: "text-zinc-400" }]
   }
 
-  const titles = Object.keys(sectionMap).map(escapeRegex).join("|")
-  const regex = new RegExp(
-    `\\*\\*(${titles})\\*\\*\\s*(?:[—-]\\s*)?([\\s\\S]*?)(?=\\*\\*(?:${titles})\\*\\*|$)`,
-    "gi"
-  )
-
   const sections: ReviewSection[] = []
-  let match: RegExpExecArray | null
 
-  while ((match = regex.exec(content)) !== null) {
-    const title = match[1]
-    let body = match[2].trim()
-
-    body = body.replace(/\*\*(.*?)\*\*/g, "$1")
-    body = body.replace(/`([^`]+)`/g, "$1")
-    body = body.replace(/\$([^$]+)\$/g, "$1")
-    body = body.replace(/^\s*[*+-]\s*/gm, "• ")
-    body = body.replace(/^•\s*•\s*/gm, "• ")
-    body = body.replace(/\s+\n/g, "\n")
-
-    // Find matching key case-insensitively for the color map
-    const mappedKey = Object.keys(sectionMap).find((k) => k.toLowerCase() === title.toLowerCase())
-    const displayTitle = mappedKey || title
-    const color = mappedKey ? sectionMap[mappedKey] : "text-zinc-400"
-
-    sections.push({ title: displayTitle, content: body, color })
+  if (content.correctness) {
+    sections.push({ title: "Correctness", content: content.correctness, color: "text-emerald-400" })
+  }
+  if (content.complexity) {
+    sections.push({ title: "Complexity", content: content.complexity, color: "text-violet-400" })
+  }
+  if (content.style) {
+    sections.push({ title: "Style", content: content.style, color: "text-amber-400" })
+  }
+  if (content.improvement) {
+    sections.push({ title: "One thing to improve", content: content.improvement, color: "text-red-400" })
   }
 
   return sections
-}
-
-function escapeRegex(value: string) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
 }

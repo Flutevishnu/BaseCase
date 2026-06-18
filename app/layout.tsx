@@ -27,7 +27,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased min-h-screen`}>
         <ThemeProvider>
           <div className="h-screen flex flex-col bg-zinc-50 dark:bg-zinc-950 transition-colors">
             <header className="border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-8 py-4 transition-colors">

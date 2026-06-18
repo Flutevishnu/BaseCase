@@ -40,52 +40,15 @@ export async function POST(req: NextRequest) {
     console.log("[submit] stateValues keys:", Object.keys(stateValues ?? {}))
     console.log("[submit] stateValues:", JSON.stringify(stateValues, null, 2))
 
-    const extractString = (value: unknown): string => {
-      if (typeof value === "string") return value
-      if (Array.isArray(value)) {
-        // It might be a list of content blocks
-        return value.map((c: unknown) => {
-          if (typeof c === "string") return c
-          if (typeof c === "object" && c !== null) {
-            return (c as Record<string, unknown>).text ?? ""
-          }
-          return ""
-        }).join("")
-      }
-      if (typeof value === "object" && value !== null) {
-        const v = value as Record<string, unknown>
-        if (typeof v.content === "string") return v.content
-        if (Array.isArray(v.content)) return extractString(v.content)
-        if (typeof v.text === "string") return v.text
-      }
-      return ""
+    // The state now directly holds the structured JSON review from the LLM
+    const review = stateValues?.review || {
+      correctness: "No feedback provided",
+      complexity: "No feedback provided",
+      style: "No feedback provided",
+      improvement: "No feedback provided",
     }
 
-    // Try common top-level state keys first
-    let review =
-      extractString(stateValues?.review) ||
-      extractString(stateValues?.review_text) ||
-      extractString(stateValues?.latest_message) ||
-      extractString(stateValues?.assistant_reply) ||
-      extractString(stateValues?.response) ||
-      ""
-
-    // Fallback: grab the last AI message from the messages array
-    if (!review) {
-      const msgs = stateValues?.messages
-      if (Array.isArray(msgs)) {
-        const lastAi = [...msgs].reverse().find(
-          (m: unknown) => {
-            if (typeof m !== "object" || m === null) return false
-            const msg = m as Record<string, unknown>
-            return msg.type === "ai" || msg.type === "AIMessage" || msg.role === "assistant"
-          }
-        )
-        if (lastAi) review = extractString((lastAi as Record<string, unknown>).content)
-      }
-    }
-
-    console.log("[submit] extracted review length:", review.length)
+    console.log("[submit] extracted structured review:", review)
 
     return NextResponse.json({
       success: true,

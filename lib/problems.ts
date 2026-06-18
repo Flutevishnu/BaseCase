@@ -112,6 +112,56 @@ export const problems: Problem[] = [
       "s consists of English letters, digits, symbols and spaces.",
     ],
   },
+  {
+    id: "reverse-linked-list",
+    title: "Reverse Linked List",
+    difficulty: "Easy",
+    tags: ["Linked List", "Recursion"],
+    description: "Given the head of a singly linked list, reverse the list, and return the reversed list.",
+    examples: [
+      { input: "head = [1,2,3,4,5]", output: "[5,4,3,2,1]" },
+      { input: "head = [1,2]", output: "[2,1]" },
+    ],
+    constraints: ["The number of nodes in the list is the range [0, 5000].", "-5000 <= Node.val <= 5000"],
+  },
+  {
+    id: "invert-binary-tree",
+    title: "Invert Binary Tree",
+    difficulty: "Easy",
+    tags: ["Tree", "DFS", "BFS"],
+    description: "Given the root of a binary tree, invert the tree, and return its root.",
+    examples: [
+      { input: "root = [4,2,7,1,3,6,9]", output: "[4,7,2,9,6,3,1]" },
+      { input: "root = [2,1,3]", output: "[2,3,1]" }
+    ],
+    constraints: ["The number of nodes in the tree is in the range [0, 100].", "-100 <= Node.val <= 100"],
+  },
+  {
+    id: "number-of-islands",
+    title: "Number of Islands",
+    difficulty: "Medium",
+    tags: ["Graph", "Matrix", "DFS"],
+    description: "Given an m x n 2D binary grid grid which represents a map of '1's (land) and '0's (water), return the number of islands. An island is surrounded by water and is formed by connecting adjacent lands horizontally or vertically. You may assume all four edges of the grid are all surrounded by water.",
+    examples: [
+      {
+        input: 'grid = [["1","1","1","1","0"],["1","1","0","1","0"],["1","1","0","0","0"],["0","0","0","0","0"]]',
+        output: "1",
+      }
+    ],
+    constraints: ["m == grid.length", "n == grid[i].length", "1 <= m, n <= 300", "grid[i][j] is '0' or '1'."],
+  },
+  {
+    id: "binary-search",
+    title: "Binary Search",
+    difficulty: "Easy",
+    tags: ["Array", "Binary Search"],
+    description: "Given an array of integers nums which is sorted in ascending order, and an integer target, write a function to search target in nums. If target exists, then return its index. Otherwise, return -1. You must write an algorithm with O(log n) runtime complexity.",
+    examples: [
+      { input: "nums = [-1,0,3,5,9,12], target = 9", output: "4", explanation: "9 exists in nums and its index is 4" },
+      { input: "nums = [-1,0,3,5,9,12], target = 2", output: "-1", explanation: "2 does not exist in nums so return -1" }
+    ],
+    constraints: ["1 <= nums.length <= 10^4", "-10^4 < nums[i], target < 10^4", "All the integers in nums are unique.", "nums is sorted in ascending order."],
+  }
 ]
 
 export function getProblemById(id: string): Problem | undefined {

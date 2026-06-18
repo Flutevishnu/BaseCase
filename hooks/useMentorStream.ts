@@ -73,6 +73,7 @@ export function useMentorStream(problemDescription: string) {
                 const parts = chunk.data as Array<{
                   type?: string
                   content?: string | Array<{ type?: string; text?: string }>
+                  tool_calls?: Array<{ name: string; args: any }>
                 }>
 
                 // Find the AI message chunk
@@ -81,7 +82,7 @@ export function useMentorStream(problemDescription: string) {
                   d.type === "AIMessageChunk" ||
                   d.type === "AIMessage"
                 )
-                if (!aiPart?.content) continue
+                if (!aiPart) continue
 
                 const text =
                   typeof aiPart.content === "string"
@@ -92,24 +93,56 @@ export function useMentorStream(problemDescription: string) {
                         .join("")
                       : ""
 
-                if (!text) continue
+                let visualization: any = undefined
+                if (aiPart.tool_calls && Array.isArray(aiPart.tool_calls)) {
+                  const vizCall = aiPart.tool_calls.find((t: any) => t.name === "GenerateVisualization")
+                  if (vizCall && vizCall.args) {
+                    visualization = vizCall.args
+                  }
+                }
+
+                if (!text && !visualization) continue
 
                 setMessages((prev) => {
                   const next = [...prev]
                   const last = next.length - 1
                   if (next[last]?.isStreaming) {
-                    next[last] = { role: "assistant", content: text, isStreaming: true }
+                    const currentMsg = next[last]
+                    next[last] = { 
+                      role: "assistant", 
+                      content: text || currentMsg.content,
+                      isStreaming: true,
+                      ...(visualization ? { visualization } : currentMsg.visualization ? { visualization: currentMsg.visualization } : {})
+                    }
                   }
                   return next
                 })
               }
 
-              // values: full graph state — sync phase transitions
+              // values: full graph state — sync phase transitions and catch manual messages
               if (chunk.event === "values") {
-                const vals = chunk.data as { current_phase?: string }
+                const vals = chunk.data as { current_phase?: string, messages?: any[] }
                 const newPhase = vals?.current_phase as Phase | undefined
                 if (newPhase && newPhase !== phase) {
                   setPhase(newPhase)
+                }
+
+                // Catch manually appended messages that don't stream (e.g. from transition_node)
+                if (vals.messages && Array.isArray(vals.messages) && vals.messages.length > 0) {
+                  const lastMsg = vals.messages[vals.messages.length - 1]
+                  if (lastMsg && (lastMsg.type === "ai" || lastMsg.type === "AIMessage" || lastMsg.id?.startsWith("AIMessage"))) {
+                    const text = typeof lastMsg.content === "string" ? lastMsg.content : ""
+                    if (text) {
+                      setMessages((prev) => {
+                        const next = [...prev]
+                        const last = next.length - 1
+                        if (next[last]?.isStreaming) {
+                          next[last] = { ...next[last], content: text }
+                        }
+                        return next
+                      })
+                    }
+                  }
                 }
               }
             } catch (err) {
@@ -150,17 +183,26 @@ export function useMentorStream(problemDescription: string) {
     [threadId, phase, setPhase]
   )
 
+  const lastSentCode = useRef<string | null>(null)
+
   const sendMessage = useCallback(
     (content: string) => {
       if (!content.trim() || isLoading) return
+      
+      let streamContent = content
+      if (code && code.trim() !== "" && code !== lastSentCode.current) {
+        streamContent += `\n\n[Latest code of user]:\n\`\`\`\n${code}\n\`\`\``
+        lastSentCode.current = code
+      }
+
       setMessages((prev) => [...prev, { role: "user", content }])
       runStream({
-        messages: [{ type: "human", content }],
+        messages: [{ type: "human", content: streamContent }],
         problem_description: problemDescription,
         current_phase: phase,
       })
     },
-    [runStream, isLoading, phase, problemDescription]
+    [runStream, isLoading, phase, problemDescription, code]
   )
 
   const submitCode = useCallback(async () => {
