@@ -108,8 +108,8 @@ export function useMentorStream(problemDescription: string) {
                   const last = next.length - 1
                   if (next[last]?.isStreaming) {
                     const currentMsg = next[last]
-                    next[last] = { 
-                      role: "assistant", 
+                    next[last] = {
+                      role: "assistant",
                       content: text || currentMsg.content,
                       isStreaming: true,
                       ...(visualization ? { visualization } : currentMsg.visualization ? { visualization: currentMsg.visualization } : {})
@@ -188,7 +188,7 @@ export function useMentorStream(problemDescription: string) {
   const sendMessage = useCallback(
     (content: string) => {
       if (!content.trim() || isLoading) return
-      
+
       let streamContent = content
       if (code && code.trim() !== "" && code !== lastSentCode.current) {
         streamContent += `\n\n[Latest code of user]:\n\`\`\`\n${code}\n\`\`\``
