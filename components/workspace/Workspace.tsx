@@ -1,6 +1,6 @@
 "use client"
 
-import { Problem } from "@/types/mentor"
+import { Problem } from "@/types"
 import { useMentorStream } from "@/hooks/useMentorStream"
 import { ProblemPanel } from "./ProblemPanel"
 import { EditorPanel } from "./EditorPanel"

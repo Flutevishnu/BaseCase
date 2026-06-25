@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from "react"
-import { VisualizationData, VisualizationStep } from "@/types/mentor"
+import { VisualizationData, VisualizationStep } from "@/types"
 import { Play, Pause, ChevronLeft, ChevronRight, ArrowRight } from "lucide-react"
 
 interface LinkedListVisualizerProps {

@@ -19,7 +19,7 @@ The project is split into two distinct services:
 - **Socratic Tutoring Engine**: Powered by a multi-node LangGraph state machine. It correctly identifies whether a user is in the Ideation phase or Coding phase, and gates progression until the user discovers the correct algorithmic approach.
 - **Dynamic Visualizations**: Automatically generates live React components to visualize Data Structures (Linked Lists, Binary Trees, Matrices, Hashmaps) directly in the chat based on the agent's contextual requests.
 - **Real-Time Streaming**: Tokens are streamed seamlessly from the backend LangGraph engine to the frontend via Server-Sent Events (SSE) for zero-latency interactions.
-- **Native Structured Code Reviews**: When the user submits their code, the LLM seamlessly switches to structured JSON outputs (`CodeReviewData`) to populate dedicated, styled UI feedback cards (Correctness, Complexity, Style, Improvements) without fragile Regex parsing.
+- **Native Structured Code Reviews**: When the user submits their code, the LLM seamlessly switches to structured JSON outputs (`CodeReview`) to populate dedicated, styled UI feedback cards (Correctness, Complexity, Style, Improvements) without fragile Regex parsing.
 - **Decoupled Prompt Management**: All system prompts are abstracted away from source code and managed dynamically via LangSmith Hub, enabling instant A/B testing and non-blocking iteration.
 
 ## Running Locally

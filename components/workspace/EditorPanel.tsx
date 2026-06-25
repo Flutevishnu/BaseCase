@@ -1,11 +1,11 @@
 "use client"
 
-import { Problem } from "@/types/mentor"
+import { Problem } from "@/types"
 import { useSessionStore } from "@/stores/sessionStore"
 import { useMentorStream } from "@/hooks/useMentorStream"
 import { LockedOverlay } from "@/components/ui/LockedOverlay"
-import { CodeEditor } from "./CodeEditor"
-import { ReviewPanel } from "./ReviewPanel"
+import { CodeEditor } from "./editor/CodeEditor"
+import { ReviewPanel } from "./editor/ReviewPanel"
 
 interface EditorPanelProps {
   problem: Problem

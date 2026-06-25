@@ -1,20 +1,20 @@
 import { create } from "zustand"
-import { Phase, MentorMessage } from "@/types/mentor"
+import { MentorPhase } from "@/types"
 
 interface SessionStore {
-  phase: Phase
+  phase: MentorPhase
   threadId: string
   code: string
   isLoading: boolean
 
-  setPhase: (phase: Phase) => void
+  setPhase: (phase: MentorPhase) => void
   setCode: (code: string) => void
   setLoading: (loading: boolean) => void
   reset: () => void
 }
 
 const initialState = {
-  phase: "IDEATION" as Phase,
+  phase: "IDEATION" as MentorPhase,
   threadId: typeof crypto !== "undefined" ? crypto.randomUUID() : "default-thread",
   code: "",
   isLoading: false,

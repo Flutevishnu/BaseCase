@@ -1,0 +1,28 @@
+export const PROBLEM_TAGS = [
+  "Array",
+  "BFS",
+  "Backtracking",
+  "Binary Search",
+  "Binary Search Tree",
+  "Bit Manipulation",
+  "Combinatorics",
+  "DFS",
+  "Divide and Conquer",
+  "Dynamic Programming",
+  "Greedy",
+  "Hash Map",
+  "Heap",
+  "Linked List",
+  "Math",
+  "Matrix",
+  "Recursion",
+  "Simulation",
+  "Sliding Window",
+  "Sorting",
+  "Stack",
+  "String",
+  "Tree",
+  "Two Pointers",
+] as const
+
+export type ProblemTag = (typeof PROBLEM_TAGS)[number]

@@ -1,13 +1,9 @@
 "use client"
 
 import { useEffect, useRef } from "react"
-import { MentorMessage } from "@/types/mentor"
+import { MentorMessage } from "@/types"
 import { MermaidDiagram } from "./MermaidDiagram"
-import { ArrayVisualizer } from "./ArrayVisualizer"
-import { LinkedListVisualizer } from "./LinkedListVisualizer"
-import { TreeVisualizer } from "./TreeVisualizer"
-import { MatrixVisualizer } from "./MatrixVisualizer"
-import { HashmapVisualizer } from "./HashmapVisualizer"
+import { Visualization } from "../visualizers"
 
 interface ChatThreadProps {
   messages: MentorMessage[]
@@ -96,15 +92,7 @@ export function ChatThread({ messages, isLoading }: ChatThreadProps) {
                 <span className="inline-block w-0.5 h-3 bg-zinc-500 dark:bg-zinc-400 ml-0.5 align-middle animate-pulse" />
               )}
 
-              {msg.visualization && (
-                <>
-                  {msg.visualization.viz_type === "array" && <ArrayVisualizer data={msg.visualization} />}
-                  {msg.visualization.viz_type === "linked_list" && <LinkedListVisualizer data={msg.visualization} />}
-                  {msg.visualization.viz_type === "binary_tree" && <TreeVisualizer data={msg.visualization} />}
-                  {msg.visualization.viz_type === "matrix" && <MatrixVisualizer data={msg.visualization} />}
-                  {msg.visualization.viz_type === "hashmap" && <HashmapVisualizer data={msg.visualization} />}
-                </>
-              )}
+              {msg.visualization && <Visualization data={msg.visualization} />}
             </div>
           </div>
         ))}

@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect, useRef, useLayoutEffect } from "react"
-import { VisualizationData, VisualizationStep } from "@/types/mentor"
+import { VisualizationData, VisualizationStep } from "@/types"
 import { Play, Pause, ChevronLeft, ChevronRight } from "lucide-react"
 
 interface TreeVisualizerProps {

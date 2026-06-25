@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { Client } from "@langchain/langgraph-sdk"
+import { requireAuth } from "@/lib/require-auth"
 
 const LANGGRAPH_API_URL =
   process.env.LANGGRAPH_API_URL || "http://localhost:2024"
@@ -9,6 +10,12 @@ const ASSISTANT_ID =
 const client = new Client({ apiUrl: LANGGRAPH_API_URL })
 
 export async function POST(req: NextRequest) {
+  const authResult = await requireAuth()
+  if (authResult.unauthorized) {
+    return authResult.unauthorized
+  }
+  const { userId } = authResult
+
   try {
     const {
       threadId,
@@ -24,7 +31,11 @@ export async function POST(req: NextRequest) {
     }
 
     // Ensure thread exists
-    await client.threads.create({ threadId, ifExists: "do_nothing" })
+    await client.threads.create({
+      threadId,
+      ifExists: "do_nothing",
+      metadata: { userId },
+    })
 
     // Submit code for review (non-streaming, returns structured output)
     const stateValues = await client.runs.wait(threadId, ASSISTANT_ID, {

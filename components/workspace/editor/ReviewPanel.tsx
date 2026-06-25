@@ -2,17 +2,10 @@
 
 import { useSessionStore } from "@/stores/sessionStore"
 import { useRouter } from "next/navigation"
-
-export interface CodeReviewData {
-  correctness?: string
-  complexity?: string
-  style?: string
-  improvement?: string
-  [key: string]: string | undefined
-}
+import { CodeReview } from "@/types"
 
 interface ReviewPanelProps {
-  reviewContent: CodeReviewData | string | null
+  reviewContent: CodeReview | string | null
   isStreaming?: boolean
 }
 
@@ -100,7 +93,7 @@ interface ReviewSection {
   color: string
 }
 
-function parseReview(content: CodeReviewData | string | null): ReviewSection[] {
+function parseReview(content: CodeReview | string | null): ReviewSection[] {
   if (!content) return []
 
   // Fallback for legacy string data

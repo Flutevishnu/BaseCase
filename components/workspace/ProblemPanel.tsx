@@ -1,6 +1,6 @@
 "use client"
 
-import { Problem } from "@/types/mentor"
+import { Problem } from "@/types"
 import { useSessionStore } from "@/stores/sessionStore"
 
 interface ProblemPanelProps {

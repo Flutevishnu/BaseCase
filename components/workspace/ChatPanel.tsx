@@ -2,8 +2,8 @@
 
 import { useMentorStream } from "@/hooks/useMentorStream"
 import { useSessionStore } from "@/stores/sessionStore"
-import { ChatThread } from "./ChatThread"
-import { ChatInput } from "./ChatInput"
+import { ChatThread } from "./chat/ChatThread"
+import { ChatInput } from "./chat/ChatInput"
 
 interface ChatPanelProps {
   stream: ReturnType<typeof useMentorStream>

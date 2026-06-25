@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation"
-import { getProblemById } from "@/lib/problems"
 import { Workspace } from "@/components/workspace/Workspace"
+import { fetchProblemById } from "@/lib/problems-api"
 
 interface ProblemPageProps {
   params: Promise<{ id: string }>
@@ -8,7 +8,7 @@ interface ProblemPageProps {
 
 export default async function ProblemPage({ params }: ProblemPageProps) {
   const { id } = await params
-  const problem = getProblemById(id)
+  const problem = await fetchProblemById(id)
 
   if (!problem) notFound()
 

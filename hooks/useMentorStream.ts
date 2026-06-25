@@ -1,8 +1,14 @@
 "use client"
 
 import { useSessionStore } from "@/stores/sessionStore"
-import { Phase, MentorMessage } from "@/types/mentor"
+import { MentorPhase, MentorMessage } from "@/types"
 import { useCallback, useState, useRef } from "react"
+
+function handleUnauthorizedResponse(response: Response): boolean {
+  if (response.status !== 401) return false
+  window.location.href = `/sign-in?redirect_url=${encodeURIComponent(window.location.pathname)}`
+  return true
+}
 
 export function useMentorStream(problemDescription: string) {
   const { threadId, phase, setPhase, code } = useSessionStore()
@@ -36,6 +42,8 @@ export function useMentorStream(problemDescription: string) {
           body: JSON.stringify({ threadId, input }),
           signal: abort.signal,
         })
+
+        if (handleUnauthorizedResponse(response)) return
 
         if (!response.ok) {
           throw new Error(`API error: ${response.statusText}`)
@@ -122,7 +130,7 @@ export function useMentorStream(problemDescription: string) {
               // values: full graph state — sync phase transitions and catch manual messages
               if (chunk.event === "values") {
                 const vals = chunk.data as { current_phase?: string, messages?: any[] }
-                const newPhase = vals?.current_phase as Phase | undefined
+                const newPhase = vals?.current_phase as MentorPhase | undefined
                 if (newPhase && newPhase !== phase) {
                   setPhase(newPhase)
                 }
@@ -221,6 +229,8 @@ export function useMentorStream(problemDescription: string) {
           problemDescription,
         }),
       })
+
+      if (handleUnauthorizedResponse(response)) return
 
       if (!response.ok) {
         throw new Error(`API error: ${response.statusText}`)

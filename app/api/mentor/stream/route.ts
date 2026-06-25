@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server"
 import { Client } from "@langchain/langgraph-sdk"
+import { requireAuth } from "@/lib/require-auth"
 
 // Force dynamic — this is a streaming endpoint, never cache
 export const dynamic = "force-dynamic"
@@ -10,6 +11,12 @@ const ASSISTANT_ID = process.env.LANGGRAPH_ASSISTANT_ID || "agent"
 const client = new Client({ apiUrl: LANGGRAPH_API_URL })
 
 export async function POST(req: NextRequest) {
+  const authResult = await requireAuth()
+  if (authResult.unauthorized) {
+    return authResult.unauthorized
+  }
+  const { userId } = authResult
+
   const body = await req.json()
   const { threadId, input } = body
 
@@ -28,7 +35,11 @@ export async function POST(req: NextRequest) {
     async start(controller) {
       try {
         // Ensure thread exists before streaming
-        await client.threads.create({ threadId, ifExists: "do_nothing" })
+        await client.threads.create({
+          threadId,
+          ifExists: "do_nothing",
+          metadata: { userId },
+        })
 
         const runStream = client.runs.stream(threadId, ASSISTANT_ID, {
           input,
