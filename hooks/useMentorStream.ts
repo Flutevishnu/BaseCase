@@ -1,7 +1,7 @@
 "use client"
 
 import { useSessionStore } from "@/stores/sessionStore"
-import { MentorPhase, MentorMessage } from "@/types"
+import { MentorPhase, MentorMessage, CodeReview } from "@/types"
 import { useCallback, useState, useRef } from "react"
 
 function handleUnauthorizedResponse(response: Response): boolean {
@@ -15,7 +15,8 @@ export function useMentorStream(problemDescription: string) {
 
   const [messages, setMessages] = useState<MentorMessage[]>([])
   const [isLoading, setIsLoading] = useState(false)
-  const [reviewContent, setReviewContent] = useState<string>("")
+  const [reviewContent, setReviewContent] = useState<CodeReview | null>(null)
+  const [reviewError, setReviewError] = useState<string | null>(null)
   const [isReviewLoading, setIsReviewLoading] = useState(false)
   const [threadReady, setThreadReady] = useState(true) // API handles thread creation
   const abortRef = useRef<AbortController | null>(null)
@@ -217,7 +218,8 @@ export function useMentorStream(problemDescription: string) {
     if (!code.trim() || isReviewLoading) return
 
     setIsReviewLoading(true)
-    setReviewContent("")
+    setReviewContent(null)
+    setReviewError(null)
 
     try {
       const response = await fetch("/api/mentor/submit", {
@@ -237,23 +239,22 @@ export function useMentorStream(problemDescription: string) {
       }
 
       const data = await response.json()
-      console.log("[hook] submit response:", data)
+      const review = data.review as CodeReview | undefined
 
-      // The proxy already extracts the review text — trust it directly
-      const reviewText = typeof data.review === "string" ? data.review : ""
+      const hasContent =
+        !!review &&
+        Object.values(review).some((v) => typeof v === "string" && v.trim().length > 0)
 
-      if (reviewText) {
-        setReviewContent(reviewText)
-        setPhase("REVIEW")
+      if (hasContent && review) {
+        setReviewContent(review)
       } else {
-        // Review came back empty — log the full payload to diagnose
         console.warn("[hook] Empty review. Full data:", JSON.stringify(data, null, 2))
-        setReviewContent("Review is processing… check the server logs for the graph state shape.")
-        setPhase("REVIEW")
+        setReviewError("Review is processing… please try submitting again.")
       }
+      setPhase("REVIEW")
     } catch (err) {
       console.error("Submit error:", err)
-      setReviewContent("Failed to get code review. Please try again.")
+      setReviewError("Failed to get code review. Please try again.")
       setPhase("REVIEW")
     } finally {
       setIsReviewLoading(false)
@@ -267,6 +268,7 @@ export function useMentorStream(problemDescription: string) {
     sendMessage,
     submitCode,
     reviewContent,
+    reviewError,
     isReviewLoading,
   }
 }

@@ -10,6 +10,7 @@ const MonacoEditor = dynamic(() => import("@monaco-editor/react"), { ssr: false 
 interface CodeEditorProps {
   onSubmit: () => void
   isLoading: boolean
+  isReviewing: boolean
 }
 
 const DEFAULT_CODE = `from typing import List
@@ -20,7 +21,7 @@ class Solution:
         pass
 `
 
-export function CodeEditor({ onSubmit, isLoading }: CodeEditorProps) {
+export function CodeEditor({ onSubmit, isLoading, isReviewing }: CodeEditorProps) {
   const { code, setCode } = useSessionStore()
   const { theme } = useTheme()
   const [mounted, setMounted] = useState(false)
@@ -96,7 +97,7 @@ export function CodeEditor({ onSubmit, isLoading }: CodeEditorProps) {
               disabled={isLoading || !code?.trim()}
               className="flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-lg bg-violet-600 text-white hover:bg-violet-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-95"
             >
-              {isLoading ? (
+              {isReviewing ? (
                 <>
                   <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   Reviewing...

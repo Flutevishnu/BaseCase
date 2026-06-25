@@ -14,7 +14,7 @@ interface EditorPanelProps {
 
 export function EditorPanel({ problem, stream }: EditorPanelProps) {
   const { phase, isLoading: sessionLoading } = useSessionStore()
-  const { submitCode, isLoading: streamLoading, reviewContent, isReviewLoading } = stream
+  const { submitCode, isLoading: streamLoading, reviewContent, reviewError, isReviewLoading } = stream
 
   const isLoading = sessionLoading || streamLoading || isReviewLoading
 
@@ -59,9 +59,11 @@ export function EditorPanel({ problem, stream }: EditorPanelProps) {
 
       {/* Phase-driven content */}
       {phase === "IDEATION" && <LockedOverlay />}
-      {phase === "CODING" && <CodeEditor onSubmit={submitCode} isLoading={isLoading} />}
+      {phase === "CODING" && (
+        <CodeEditor onSubmit={submitCode} isLoading={isLoading} isReviewing={isReviewLoading} />
+      )}
       {phase === "REVIEW" && (
-        <ReviewPanel reviewContent={reviewContent} isStreaming={isReviewLoading} />
+        <ReviewPanel reviewContent={reviewContent} reviewError={reviewError} isStreaming={isReviewLoading} />
       )}
     </div>
   )

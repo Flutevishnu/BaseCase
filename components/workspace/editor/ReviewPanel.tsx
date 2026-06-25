@@ -5,21 +5,18 @@ import { useRouter } from "next/navigation"
 import { CodeReview } from "@/types"
 
 interface ReviewPanelProps {
-  reviewContent: CodeReview | string | null
+  reviewContent: CodeReview | null
+  reviewError?: string | null
   isStreaming?: boolean
 }
 
-export function ReviewPanel({ reviewContent, isStreaming }: ReviewPanelProps) {
+export function ReviewPanel({ reviewContent, reviewError, isStreaming }: ReviewPanelProps) {
   const { setPhase, reset } = useSessionStore()
   const router = useRouter()
 
   const sections = parseReview(reviewContent)
-  
-  const fallbackText = typeof reviewContent === "string" 
-    ? reviewContent 
-    : reviewContent 
-      ? JSON.stringify(reviewContent, null, 2) 
-      : ""
+
+  const fallbackText = reviewError ?? ""
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-white dark:bg-zinc-950 transition-colors">
@@ -93,13 +90,8 @@ interface ReviewSection {
   color: string
 }
 
-function parseReview(content: CodeReview | string | null): ReviewSection[] {
+function parseReview(content: CodeReview | null): ReviewSection[] {
   if (!content) return []
-
-  // Fallback for legacy string data
-  if (typeof content === "string") {
-    return [{ title: "Feedback", content, color: "text-zinc-400" }]
-  }
 
   const sections: ReviewSection[] = []
 
