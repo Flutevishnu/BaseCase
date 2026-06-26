@@ -1,9 +1,11 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { Problem } from "@/types"
 import { useMentorStream } from "@/hooks/useMentorStream"
 import { useSessionStore } from "@/stores/sessionStore"
+import { devError } from "@/lib/logger"
+import { readApiErrorMessage, USER_MESSAGES } from "@/lib/user-messages"
 import { ProblemPanel } from "./ProblemPanel"
 import { EditorPanel } from "./EditorPanel"
 import { ChatPanel } from "./ChatPanel"
@@ -15,22 +17,34 @@ import {
 
 interface WorkspaceProps {
   problem: Problem
+  initialThreadId: string
 }
 
-export function Workspace({ problem }: WorkspaceProps) {
+export function Workspace({ problem, initialThreadId }: WorkspaceProps) {
   const stream = useMentorStream(problem.description)
   const setThreadId = useSessionStore((s) => s.setThreadId)
+  const [sessionError, setSessionError] = useState<string | null>(null)
+  const [bootstrapKey, setBootstrapKey] = useState(0)
 
-  // Bootstrap the session: ask the backend to create or resume the thread for
-  // this problem. The thread id is server-owned — the client never generates it.
+  const retrySession = () => setBootstrapKey((key) => key + 1)
+
+  // Apply the server-resolved thread id on load (or when navigating to another problem).
   useEffect(() => {
+    if (bootstrapKey > 0) return
+    setSessionError(null)
+    setThreadId(initialThreadId)
+  }, [problem.id, initialThreadId, setThreadId, bootstrapKey])
+
+  // Client-side retry only — initial bootstrap runs on the server in page.tsx.
+  useEffect(() => {
+    if (bootstrapKey === 0) return
+
     let cancelled = false
 
-    // Clear any stale thread id from a previously opened problem so the chat
-    // shows "Connecting..." until this problem's session resolves.
+    setSessionError(null)
     setThreadId("")
 
-    async function bootstrapSession() {
+    async function retryBootstrap() {
       try {
         const response = await fetch(
           `/api/problems/${encodeURIComponent(problem.id)}/sessions`,
@@ -47,24 +61,32 @@ export function Workspace({ problem }: WorkspaceProps) {
         }
 
         if (!response.ok) {
-          throw new Error(`Session bootstrap failed: ${response.statusText}`)
+          const message = await readApiErrorMessage(
+            response,
+            USER_MESSAGES.sessionFailed
+          )
+          if (!cancelled) setSessionError(message)
+          return
         }
 
         const { data } = (await response.json()) as { data?: { threadId?: string } }
         if (!cancelled && data?.threadId) {
           setThreadId(data.threadId)
+        } else if (!cancelled) {
+          setSessionError(USER_MESSAGES.sessionFailed)
         }
       } catch (err) {
-        console.error("[workspace] session bootstrap error:", err)
+        devError("[workspace] session bootstrap", err)
+        if (!cancelled) setSessionError(USER_MESSAGES.sessionFailed)
       }
     }
 
-    bootstrapSession()
+    retryBootstrap()
 
     return () => {
       cancelled = true
     }
-  }, [problem.id, setThreadId])
+  }, [problem.id, setThreadId, bootstrapKey])
 
   return (
     <div className="h-full w-full overflow-hidden">
@@ -85,7 +107,11 @@ export function Workspace({ problem }: WorkspaceProps) {
 
         {/* Right: Chat */}
         <ResizablePanel defaultSize={25} minSize={20}>
-          <ChatPanel stream={stream} />
+          <ChatPanel
+            stream={stream}
+            sessionError={sessionError}
+            onRetrySession={retrySession}
+          />
         </ResizablePanel>
       </ResizablePanelGroup>
     </div>

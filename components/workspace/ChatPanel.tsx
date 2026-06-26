@@ -7,9 +7,11 @@ import { ChatInput } from "./chat/ChatInput"
 
 interface ChatPanelProps {
   stream: ReturnType<typeof useMentorStream>
+  sessionError?: string | null
+  onRetrySession?: () => void
 }
 
-export function ChatPanel({ stream }: ChatPanelProps) {
+export function ChatPanel({ stream, sessionError, onRetrySession }: ChatPanelProps) {
   const { phase } = useSessionStore()
   const { mentorMessages, isLoading, sendMessage, threadReady } = stream
 
@@ -21,10 +23,24 @@ export function ChatPanel({ stream }: ChatPanelProps) {
         <span className="text-[10px] font-bold tracking-widest text-zinc-400 dark:text-zinc-500 uppercase">
           BaseCase Mentor
         </span>
-        {!threadReady && (
+        {sessionError ? (
+          <button
+            type="button"
+            onClick={onRetrySession}
+            className="ml-auto text-[10px] text-red-500 dark:text-red-400 hover:underline"
+          >
+            Retry
+          </button>
+        ) : !threadReady ? (
           <span className="ml-auto text-[10px] text-zinc-400 animate-pulse">Connecting...</span>
-        )}
+        ) : null}
       </div>
+
+      {sessionError && (
+        <div className="px-4 py-3 text-xs text-red-500 dark:text-red-400 bg-red-50 dark:bg-red-950/30 border-b border-red-200 dark:border-red-900">
+          {sessionError}
+        </div>
+      )}
 
       {/* Scrollable chat thread — flex-1 lets it fill space */}
       <ChatThread messages={mentorMessages} isLoading={isLoading} />
@@ -32,7 +48,7 @@ export function ChatPanel({ stream }: ChatPanelProps) {
       {/* Input pinned to bottom */}
       <ChatInput
         onSend={sendMessage}
-        isLoading={isLoading || !threadReady}
+        isLoading={isLoading || !threadReady || Boolean(sessionError)}
         disabled={phase === "REVIEW"}
       />
     </div>

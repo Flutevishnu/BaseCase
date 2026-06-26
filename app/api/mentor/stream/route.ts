@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server"
 import { Client } from "@langchain/langgraph-sdk"
 import { requireAuth } from "@/lib/require-auth"
+import { devError } from "@/lib/logger"
 
 const LANGGRAPH_API_URL = process.env.LANGGRAPH_API_URL || "http://localhost:2024"
 const ASSISTANT_ID = process.env.LANGGRAPH_ASSISTANT_ID || "agent"
@@ -50,7 +51,7 @@ export async function POST(req: NextRequest) {
           )
         }
       } catch (err) {
-        console.error("[stream] error:", err)
+        devError("[stream]", err)
         // Send the error as a final chunk so the client knows something went wrong
         controller.enqueue(
           encoder.encode(

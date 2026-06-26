@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react"
 import { VisualizationData, VisualizationStep } from "@/types"
+import { devWarn } from "@/lib/logger"
 import { Play, Pause, ChevronLeft, ChevronRight } from "lucide-react"
 
 interface HashmapVisualizerProps {
@@ -50,7 +51,7 @@ export function HashmapVisualizer({ data }: HashmapVisualizerProps) {
           .replace(/([{,]\s*)([a-zA-Z0-9_]+)(\s*:)/g, '$1"$2"$3') // Add quotes to unquoted keys
         currentMapData = JSON.parse(sanitizedStr)
       } catch (e) {
-        console.warn("Failed to parse stringified map data:", variables.map)
+        devWarn("[hashmap viz] parse map", variables.map)
       }
     } else if (typeof variables.map === "object") {
       currentMapData = variables.map

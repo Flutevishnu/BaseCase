@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react"
 import mermaid from "mermaid"
+import { devError } from "@/lib/logger"
 
 mermaid.initialize({
   startOnLoad: false,
@@ -30,7 +31,7 @@ export function MermaidDiagram({ code }: MermaidDiagramProps) {
           setSvgContent(svg)
         }
       } catch (error) {
-        console.error("Mermaid parsing error:", error)
+        devError("[mermaid]", error)
         if (isMounted) {
           setHasError(true)
         }

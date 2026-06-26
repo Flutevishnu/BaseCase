@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { Client } from "@langchain/langgraph-sdk"
 import { requireAuth } from "@/lib/require-auth"
+import { devError } from "@/lib/logger"
+import { USER_MESSAGES } from "@/lib/user-messages"
 
 const LANGGRAPH_API_URL =
   process.env.LANGGRAPH_API_URL || "http://localhost:2024"
@@ -47,19 +49,12 @@ export async function POST(req: NextRequest) {
       },
     }) as Record<string, unknown>
 
-    // Debug: log the full state so we can see the actual shape
-    console.log("[submit] stateValues keys:", Object.keys(stateValues ?? {}))
-    console.log("[submit] stateValues:", JSON.stringify(stateValues, null, 2))
-
-    // The state now directly holds the structured JSON review from the LLM
     const review = stateValues?.review || {
       correctness: "No feedback provided",
       complexity: "No feedback provided",
       style: "No feedback provided",
       improvement: "No feedback provided",
     }
-
-    console.log("[submit] extracted structured review:", review)
 
     return NextResponse.json({
       success: true,
@@ -68,9 +63,9 @@ export async function POST(req: NextRequest) {
       data: stateValues,
     })
   } catch (err) {
-    console.error("Mentor submit API error:", err)
+    devError("[submit]", err)
     return NextResponse.json(
-      { error: "Failed to submit code for review" },
+      { error: { message: USER_MESSAGES.reviewFailed } },
       { status: 500 }
     )
   }

@@ -17,17 +17,11 @@ export function ThemeToggle() {
 
   // Avoid hydration mismatch — only render after mount
   useEffect(() => setMounted(true), [])
-  
-  useEffect(() => {
-    console.log("Current theme:", theme)
-  }, [theme])
-  
+
   if (!mounted) return <div className="w-8 h-8" /> // placeholder to prevent layout shift
 
   const handleThemeChange = () => {
-    const newTheme = theme === "dark" ? "light" : "dark"
-    console.log("Changing theme to:", newTheme)
-    setTheme(newTheme)
+    setTheme(theme === "dark" ? "light" : "dark")
   }
 
   return (

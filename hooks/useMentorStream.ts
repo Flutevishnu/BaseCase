@@ -2,6 +2,8 @@
 
 import { useSessionStore } from "@/stores/sessionStore"
 import { MentorPhase, MentorMessage, CodeReview } from "@/types"
+import { devError, devWarn } from "@/lib/logger"
+import { readApiErrorMessage, USER_MESSAGES } from "@/lib/user-messages"
 import { useCallback, useState, useRef } from "react"
 
 function handleUnauthorizedResponse(response: Response): boolean {
@@ -155,20 +157,20 @@ export function useMentorStream(problemDescription: string) {
                 }
               }
             } catch (err) {
-              console.error("Failed to parse stream chunk:", err)
+              devError("[stream] parse chunk", err)
             }
           }
         }
       } catch (err: unknown) {
         if (abort.signal.aborted) return
-        console.error("Stream error:", err)
+        devError("[stream]", err)
         setMessages((prev) => {
           const next = [...prev]
           const last = next.length - 1
           if (next[last]?.isStreaming) {
             next[last] = {
               role: "assistant",
-              content: "Something went wrong. Please try again.",
+              content: USER_MESSAGES.mentorUnavailable,
               isStreaming: false,
             }
           }
@@ -235,7 +237,10 @@ export function useMentorStream(problemDescription: string) {
       if (handleUnauthorizedResponse(response)) return
 
       if (!response.ok) {
-        throw new Error(`API error: ${response.statusText}`)
+        const message = await readApiErrorMessage(response, USER_MESSAGES.reviewFailed)
+        setReviewError(message)
+        setPhase("REVIEW")
+        return
       }
 
       const data = await response.json()
@@ -248,13 +253,13 @@ export function useMentorStream(problemDescription: string) {
       if (hasContent && review) {
         setReviewContent(review)
       } else {
-        console.warn("[hook] Empty review. Full data:", JSON.stringify(data, null, 2))
-        setReviewError("Review is processing… please try submitting again.")
+        devWarn("[submit] empty review", data)
+        setReviewError(USER_MESSAGES.reviewEmpty)
       }
       setPhase("REVIEW")
     } catch (err) {
-      console.error("Submit error:", err)
-      setReviewError("Failed to get code review. Please try again.")
+      devError("[submit]", err)
+      setReviewError(USER_MESSAGES.reviewFailed)
       setPhase("REVIEW")
     } finally {
       setIsReviewLoading(false)

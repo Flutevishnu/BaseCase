@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { requireAuth } from "@/lib/require-auth"
 import { createOrResumeSession } from "@/lib/sessions-api"
-
+import { devError } from "@/lib/logger"
+import { USER_MESSAGES } from "@/lib/user-messages"
 interface RouteParams {
   params: Promise<{ problemId: string }>
 }
@@ -34,9 +35,9 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     return NextResponse.json({ data: { threadId } })
   } catch (error) {
-    console.error("[api/problems/:problemId/sessions] POST error:", error)
+    devError("[api/problems/:problemId/sessions] POST", error)
     return NextResponse.json(
-      { error: { code: "INTERNAL_ERROR", message: "Failed to create session" } },
+      { error: { code: "SERVICE_UNAVAILABLE", message: USER_MESSAGES.sessionFailed } },
       { status: 502 }
     )
   }

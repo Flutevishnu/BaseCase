@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { fetchProblemsList } from "@/lib/problems-api"
+import { devError } from "@/lib/logger"
+import { USER_MESSAGES } from "@/lib/user-messages"
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,9 +16,9 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(result)
   } catch (error) {
-    console.error("[api/problems] GET error:", error)
+    devError("[api/problems] GET", error)
     return NextResponse.json(
-      { error: { code: "INTERNAL_ERROR", message: "Failed to fetch problems" } },
+      { error: { code: "SERVICE_UNAVAILABLE", message: USER_MESSAGES.loadProblemsFailed } },
       { status: 502 }
     )
   }

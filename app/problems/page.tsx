@@ -3,6 +3,9 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { PROBLEM_TAGS } from "@/lib/problem-tags"
+import { devError } from "@/lib/logger"
+import { readApiErrorMessage, USER_MESSAGES } from "@/lib/user-messages"
+import { InlineError } from "@/components/ui/InlineError"
 import { Difficulty, ProblemSummary } from "@/types"
 
 const PAGE_SIZE = 10
@@ -86,7 +89,11 @@ export default function ProblemsPage() {
       if (requestId !== requestIdRef.current) return
 
       if (!response.ok) {
-        throw new Error(`Failed to load problems (${response.status})`)
+        const message = await readApiErrorMessage(
+          response,
+          USER_MESSAGES.loadProblemsFailed
+        )
+        throw new Error(message)
       }
 
       const json = await response.json()
@@ -100,8 +107,10 @@ export default function ProblemsPage() {
       setHasMore(nextOffset < pageTotal && page.length === PAGE_SIZE)
     } catch (err) {
       if (requestId !== requestIdRef.current) return
-      console.error("[problems page] fetch error:", err)
-      setError("Failed to load problems.")
+      devError("[problems page]", err)
+      setError(
+        err instanceof Error ? err.message : USER_MESSAGES.loadProblemsFailed
+      )
       if (!append) {
         setProblems([])
         setHasMore(false)
@@ -238,7 +247,7 @@ export default function ProblemsPage() {
         {isLoading ? (
           <div className="text-center py-12 text-zinc-500">Loading problems...</div>
         ) : error ? (
-          <div className="text-center py-12 text-red-500">{error}</div>
+          <InlineError message={error} onRetry={() => fetchPage(false)} />
         ) : problems.length === 0 ? (
           <div className="text-center py-12 text-zinc-500">
             No problems match these filters.

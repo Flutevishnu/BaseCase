@@ -1,6 +1,10 @@
 import { notFound } from "next/navigation"
+import { auth } from "@clerk/nextjs/server"
 import { Workspace } from "@/components/workspace/Workspace"
+import { ProblemUnavailable } from "@/components/workspace/ProblemUnavailable"
 import { fetchProblemById } from "@/lib/problems-api"
+import { createOrResumeSession } from "@/lib/sessions-api"
+import { devError } from "@/lib/logger"
 
 interface ProblemPageProps {
   params: Promise<{ id: string }>
@@ -8,9 +12,21 @@ interface ProblemPageProps {
 
 export default async function ProblemPage({ params }: ProblemPageProps) {
   const { id } = await params
-  const problem = await fetchProblemById(id)
+  const { userId } = await auth()
 
-  if (!problem) notFound()
+  try {
+    const problem = await fetchProblemById(id)
+    if (!problem) notFound()
 
-  return <Workspace problem={problem} />
+    const { threadId } = await createOrResumeSession({
+      problemId: id,
+      clerkUserId: userId!,
+      restart: false,
+    })
+
+    return <Workspace problem={problem} initialThreadId={threadId} />
+  } catch (error) {
+    devError("[problem page]", error)
+    return <ProblemUnavailable />
+  }
 }

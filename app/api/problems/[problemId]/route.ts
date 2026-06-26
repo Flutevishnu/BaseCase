@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { fetchProblemById } from "@/lib/problems-api"
+import { devError } from "@/lib/logger"
+import { USER_MESSAGES } from "@/lib/user-messages"
 
 interface RouteParams {
   params: Promise<{ problemId: string }>
@@ -19,9 +21,9 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
 
     return NextResponse.json({ data: problem })
   } catch (error) {
-    console.error("[api/problems/:problemId] GET error:", error)
+    devError("[api/problems/:problemId] GET", error)
     return NextResponse.json(
-      { error: { code: "INTERNAL_ERROR", message: "Failed to fetch problem" } },
+      { error: { code: "SERVICE_UNAVAILABLE", message: USER_MESSAGES.loadProblemFailed } },
       { status: 502 }
     )
   }
