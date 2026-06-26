@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { InlineError } from "@/components/ui/InlineError"
-import { USER_MESSAGES } from "@/lib/user-messages"
+import { USER_MESSAGES } from "@/lib/messages/user-messages"
 
 export function ProblemUnavailable() {
   return (

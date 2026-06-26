@@ -1,4 +1,4 @@
-import { backendFetch } from "@/lib/backend"
+import { backendFetch } from "@/lib/api/client"
 
 interface CreateOrResumeSessionParams {
   problemId: string
@@ -6,16 +6,12 @@ interface CreateOrResumeSessionParams {
   restart?: boolean
 }
 
-/**
- * Create or resume a session for a problem.
- * The backend returns the LangGraph thread id (creating one if needed,
- * or returning the existing active session's thread id).
- */
+/** Create or resume a problem session; returns the LangGraph thread id. */
 export async function createOrResumeSession({
   problemId,
   clerkUserId,
   restart = false,
-}: CreateOrResumeSessionParams): Promise<{ threadId: string }> {
+}: CreateOrResumeSessionParams): Promise<{ threadId: string; isNew: boolean }> {
   const response = await backendFetch(
     `/problems/${encodeURIComponent(problemId)}/sessions`,
     {
@@ -29,12 +25,17 @@ export async function createOrResumeSession({
     throw new Error(`Failed to create session: ${response.status} ${response.statusText}`)
   }
 
-  const json = (await response.json()) as { data?: { threadId?: string } }
+  const json = (await response.json()) as {
+    data?: { threadId?: string; isNew?: boolean }
+  }
   const threadId = json.data?.threadId
 
   if (!threadId) {
     throw new Error("Backend did not return a threadId")
   }
 
-  return { threadId }
+  return {
+    threadId,
+    isNew: Boolean(json.data?.isNew),
+  }
 }

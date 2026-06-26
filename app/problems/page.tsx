@@ -2,9 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState } from "react"
 import Link from "next/link"
-import { PROBLEM_TAGS } from "@/lib/problem-tags"
+import { PROBLEM_TAGS } from "@/lib/constants/problem-tags"
 import { devError } from "@/lib/logger"
-import { readApiErrorMessage, USER_MESSAGES } from "@/lib/user-messages"
+import { readApiErrorMessage, USER_MESSAGES } from "@/lib/messages/user-messages"
 import { InlineError } from "@/components/ui/InlineError"
 import { Difficulty, ProblemSummary } from "@/types"
 

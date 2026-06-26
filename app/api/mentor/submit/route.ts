@@ -1,15 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
-import { Client } from "@langchain/langgraph-sdk"
-import { requireAuth } from "@/lib/require-auth"
+import { requireAuth } from "@/lib/auth/require-auth"
 import { devError } from "@/lib/logger"
-import { USER_MESSAGES } from "@/lib/user-messages"
-
-const LANGGRAPH_API_URL =
-  process.env.LANGGRAPH_API_URL || "http://localhost:2024"
-const ASSISTANT_ID =
-  process.env.LANGGRAPH_ASSISTANT_ID || "agent"
-
-const client = new Client({ apiUrl: LANGGRAPH_API_URL })
+import { USER_MESSAGES } from "@/lib/messages/user-messages"
+import { langgraphClient, LANGGRAPH_ASSISTANT_ID } from "@/lib/langgraph/client"
 
 export async function POST(req: NextRequest) {
   const authResult = await requireAuth()
@@ -33,14 +26,14 @@ export async function POST(req: NextRequest) {
     }
 
     // Ensure thread exists
-    await client.threads.create({
+    await langgraphClient.threads.create({
       threadId,
       ifExists: "do_nothing",
       metadata: { userId },
     })
 
     // Submit code for review (non-streaming, returns structured output)
-    const stateValues = await client.runs.wait(threadId, ASSISTANT_ID, {
+    const stateValues = await langgraphClient.runs.wait(threadId, LANGGRAPH_ASSISTANT_ID, {
       input: {
         messages: [{ type: "human", content: "Here is my Latest Code Submission" }],
         problem_description: problemDescription,
@@ -56,10 +49,17 @@ export async function POST(req: NextRequest) {
       improvement: "No feedback provided",
     }
 
+    const phase =
+      stateValues?.current_phase === "IDEATION" ||
+      stateValues?.current_phase === "CODING" ||
+      stateValues?.current_phase === "REVIEW"
+        ? stateValues.current_phase
+        : undefined
+
     return NextResponse.json({
       success: true,
       review,
-      phase: "REVIEW",
+      phase,
       data: stateValues,
     })
   } catch (err) {

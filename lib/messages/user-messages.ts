@@ -16,7 +16,6 @@ export const USER_MESSAGES = {
   genericTryAgain: "Something went wrong. Please try again.",
 } as const
 
-/** Read a user-facing message from a BFF/API error response. */
 export async function readApiErrorMessage(
   response: Response,
   fallback: string
@@ -37,7 +36,6 @@ export async function readApiErrorMessage(
   return messageForHttpStatus(response.status) || fallback
 }
 
-/** Map HTTP status codes to user-facing copy (client-side). */
 export function messageForHttpStatus(status: number): string {
   if (status === 401) return USER_MESSAGES.genericTryAgain
   if (status === 404) return USER_MESSAGES.loadProblemFailed

@@ -8,12 +8,21 @@ import { ChatInput } from "./chat/ChatInput"
 interface ChatPanelProps {
   stream: ReturnType<typeof useMentorStream>
   sessionError?: string | null
+  historyLoading?: boolean
   onRetrySession?: () => void
 }
 
-export function ChatPanel({ stream, sessionError, onRetrySession }: ChatPanelProps) {
+export function ChatPanel({
+  stream,
+  sessionError,
+  historyLoading,
+  onRetrySession,
+}: ChatPanelProps) {
   const { phase } = useSessionStore()
   const { mentorMessages, isLoading, sendMessage, threadReady } = stream
+
+  const isConnecting = !threadReady && !sessionError
+  const isLoadingHistory = historyLoading && !sessionError
 
   return (
     <div className="flex flex-col h-full overflow-hidden border-l border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 transition-colors">
@@ -31,7 +40,11 @@ export function ChatPanel({ stream, sessionError, onRetrySession }: ChatPanelPro
           >
             Retry
           </button>
-        ) : !threadReady ? (
+        ) : isLoadingHistory ? (
+          <span className="ml-auto text-[10px] text-zinc-400 animate-pulse">
+            Loading conversation...
+          </span>
+        ) : isConnecting ? (
           <span className="ml-auto text-[10px] text-zinc-400 animate-pulse">Connecting...</span>
         ) : null}
       </div>
@@ -48,7 +61,12 @@ export function ChatPanel({ stream, sessionError, onRetrySession }: ChatPanelPro
       {/* Input pinned to bottom */}
       <ChatInput
         onSend={sendMessage}
-        isLoading={isLoading || !threadReady || Boolean(sessionError)}
+        isLoading={
+          isLoading ||
+          !threadReady ||
+          Boolean(sessionError) ||
+          Boolean(historyLoading)
+        }
         disabled={phase === "REVIEW"}
       />
     </div>

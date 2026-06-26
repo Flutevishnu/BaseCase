@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
-import { requireAuth } from "@/lib/require-auth"
-import { createOrResumeSession } from "@/lib/sessions-api"
+import { requireAuth } from "@/lib/auth/require-auth"
+import { createOrResumeSession } from "@/lib/api/sessions"
 import { devError } from "@/lib/logger"
-import { USER_MESSAGES } from "@/lib/user-messages"
+import { USER_MESSAGES } from "@/lib/messages/user-messages"
 interface RouteParams {
   params: Promise<{ problemId: string }>
 }
@@ -27,13 +27,13 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       // no body provided — default restart = false
     }
 
-    const { threadId } = await createOrResumeSession({
+    const { threadId, isNew } = await createOrResumeSession({
       problemId,
       clerkUserId: userId,
       restart,
     })
 
-    return NextResponse.json({ data: { threadId } })
+    return NextResponse.json({ data: { threadId, isNew } })
   } catch (error) {
     devError("[api/problems/:problemId/sessions] POST", error)
     return NextResponse.json(

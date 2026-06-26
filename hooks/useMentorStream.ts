@@ -1,10 +1,10 @@
 "use client"
 
 import { useSessionStore } from "@/stores/sessionStore"
-import { MentorPhase, MentorMessage, CodeReview } from "@/types"
+import { MentorPhase, MentorMessage, CodeReview, ThreadSessionState } from "@/types"
 import { devError, devWarn } from "@/lib/logger"
-import { readApiErrorMessage, USER_MESSAGES } from "@/lib/user-messages"
-import { useCallback, useState, useRef } from "react"
+import { readApiErrorMessage, USER_MESSAGES } from "@/lib/messages/user-messages"
+import { useCallback, useState, useRef, useEffect } from "react"
 
 function handleUnauthorizedResponse(response: Response): boolean {
   if (response.status !== 401) return false
@@ -12,16 +12,40 @@ function handleUnauthorizedResponse(response: Response): boolean {
   return true
 }
 
-export function useMentorStream(problemDescription: string) {
+export function useMentorStream(
+  problemDescription: string,
+  initialThreadState?: ThreadSessionState
+) {
   const { threadId, phase, setPhase, code } = useSessionStore()
 
-  const [messages, setMessages] = useState<MentorMessage[]>([])
+  const [messages, setMessages] = useState<MentorMessage[]>(
+    initialThreadState?.messages ?? []
+  )
   const [isLoading, setIsLoading] = useState(false)
-  const [reviewContent, setReviewContent] = useState<CodeReview | null>(null)
+  const [reviewContent, setReviewContent] = useState<CodeReview | null>(
+    initialThreadState?.review ?? null
+  )
   const [reviewError, setReviewError] = useState<string | null>(null)
   const [isReviewLoading, setIsReviewLoading] = useState(false)
-  const threadReady = Boolean(threadId) // ready once backend returns the thread id
+  const threadReady = Boolean(threadId)
   const abortRef = useRef<AbortController | null>(null)
+
+  // Hydrate phase from resumed thread state (server-loaded, agent-owned).
+  useEffect(() => {
+    if (initialThreadState?.phase) {
+      setPhase(initialThreadState.phase)
+    }
+  }, [initialThreadState?.phase, setPhase])
+
+  const hydrateFromThread = useCallback(
+    (state: ThreadSessionState) => {
+      setMessages(state.messages)
+      if (state.phase) setPhase(state.phase)
+      setReviewContent(state.review ?? null)
+      setReviewError(null)
+    },
+    [setPhase]
+  )
 
   // Core streaming runner — calls /api/mentor/stream endpoint
   const runStream = useCallback(
@@ -256,7 +280,15 @@ export function useMentorStream(problemDescription: string) {
         devWarn("[submit] empty review", data)
         setReviewError(USER_MESSAGES.reviewEmpty)
       }
-      setPhase("REVIEW")
+
+      const agentPhase = data.phase as MentorPhase | undefined
+      if (
+        agentPhase === "IDEATION" ||
+        agentPhase === "CODING" ||
+        agentPhase === "REVIEW"
+      ) {
+        setPhase(agentPhase)
+      }
     } catch (err) {
       devError("[submit]", err)
       setReviewError(USER_MESSAGES.reviewFailed)
@@ -275,5 +307,6 @@ export function useMentorStream(problemDescription: string) {
     reviewContent,
     reviewError,
     isReviewLoading,
+    hydrateFromThread,
   }
 }

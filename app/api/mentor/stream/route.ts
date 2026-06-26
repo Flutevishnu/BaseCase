@@ -1,12 +1,7 @@
 import { NextRequest } from "next/server"
-import { Client } from "@langchain/langgraph-sdk"
-import { requireAuth } from "@/lib/require-auth"
+import { requireAuth } from "@/lib/auth/require-auth"
 import { devError } from "@/lib/logger"
-
-const LANGGRAPH_API_URL = process.env.LANGGRAPH_API_URL || "http://localhost:2024"
-const ASSISTANT_ID = process.env.LANGGRAPH_ASSISTANT_ID || "agent"
-
-const client = new Client({ apiUrl: LANGGRAPH_API_URL })
+import { langgraphClient, LANGGRAPH_ASSISTANT_ID } from "@/lib/langgraph/client"
 
 export async function POST(req: NextRequest) {
   const authResult = await requireAuth()
@@ -33,13 +28,13 @@ export async function POST(req: NextRequest) {
     async start(controller) {
       try {
         // Ensure thread exists before streaming
-        await client.threads.create({
+        await langgraphClient.threads.create({
           threadId,
           ifExists: "do_nothing",
           metadata: { userId },
         })
 
-        const runStream = client.runs.stream(threadId, ASSISTANT_ID, {
+        const runStream = langgraphClient.runs.stream(threadId, LANGGRAPH_ASSISTANT_ID, {
           input,
           streamMode: ["messages", "values"],
         })

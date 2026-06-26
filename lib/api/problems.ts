@@ -1,4 +1,4 @@
-import { backendFetch } from "@/lib/backend"
+import { backendFetch } from "@/lib/api/client"
 import {
   Problem,
   ProblemDetailResponse,

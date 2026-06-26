@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
-import { fetchProblemsList } from "@/lib/problems-api"
+import { fetchProblemsList } from "@/lib/api/problems"
 import { devError } from "@/lib/logger"
-import { USER_MESSAGES } from "@/lib/user-messages"
+import { USER_MESSAGES } from "@/lib/messages/user-messages"
 
 export async function GET(request: NextRequest) {
   try {
