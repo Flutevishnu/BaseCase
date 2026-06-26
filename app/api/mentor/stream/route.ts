@@ -2,9 +2,6 @@ import { NextRequest } from "next/server"
 import { Client } from "@langchain/langgraph-sdk"
 import { requireAuth } from "@/lib/require-auth"
 
-// Force dynamic — this is a streaming endpoint, never cache
-export const dynamic = "force-dynamic"
-
 const LANGGRAPH_API_URL = process.env.LANGGRAPH_API_URL || "http://localhost:2024"
 const ASSISTANT_ID = process.env.LANGGRAPH_ASSISTANT_ID || "agent"
 

@@ -8,6 +8,7 @@ interface SessionStore {
   isLoading: boolean
 
   setPhase: (phase: MentorPhase) => void
+  setThreadId: (threadId: string) => void
   setCode: (code: string) => void
   setLoading: (loading: boolean) => void
   reset: () => void
@@ -15,7 +16,7 @@ interface SessionStore {
 
 const initialState = {
   phase: "IDEATION" as MentorPhase,
-  threadId: typeof crypto !== "undefined" ? crypto.randomUUID() : "default-thread",
+  threadId: "", // server-owned: fetched from the backend session endpoint
   code: "",
   isLoading: false,
 }
@@ -25,9 +26,11 @@ export const useSessionStore = create<SessionStore>((set) => ({
 
   setPhase: (phase) => set({ phase }),
 
+  setThreadId: (threadId) => set({ threadId }),
+
   setCode: (code) => set({ code }),
 
   setLoading: (isLoading) => set({ isLoading }),
 
-  reset: () => set({ ...initialState, threadId: crypto.randomUUID() }),
+  reset: () => set({ ...initialState }),
 }))

@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { fetchProblemById } from "@/lib/problems-api"
 
-export const dynamic = "force-dynamic"
-
 interface RouteParams {
   params: Promise<{ problemId: string }>
 }

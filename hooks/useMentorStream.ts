@@ -18,7 +18,7 @@ export function useMentorStream(problemDescription: string) {
   const [reviewContent, setReviewContent] = useState<CodeReview | null>(null)
   const [reviewError, setReviewError] = useState<string | null>(null)
   const [isReviewLoading, setIsReviewLoading] = useState(false)
-  const [threadReady, setThreadReady] = useState(true) // API handles thread creation
+  const threadReady = Boolean(threadId) // ready once backend returns the thread id
   const abortRef = useRef<AbortController | null>(null)
 
   // Core streaming runner — calls /api/mentor/stream endpoint
