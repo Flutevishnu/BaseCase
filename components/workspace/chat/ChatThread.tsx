@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react"
 import { MentorMessage } from "@/types"
 import { MermaidDiagram } from "./MermaidDiagram"
+import { MarkdownMessage } from "./MarkdownMessage"
 import { Visualization } from "../visualizers"
 
 interface ChatThreadProps {
@@ -49,9 +50,7 @@ export function ChatThread({ messages, isLoading }: ChatThreadProps) {
     while ((match = regex.exec(content)) !== null) {
       if (match.index > lastIndex) {
         parts.push(
-          <span key={id++} className="whitespace-pre-wrap">
-            {content.slice(lastIndex, match.index)}
-          </span>
+          <MarkdownMessage key={id++} content={content.slice(lastIndex, match.index)} />
         )
       }
       parts.push(
@@ -64,7 +63,7 @@ export function ChatThread({ messages, isLoading }: ChatThreadProps) {
       lastIndex = regex.lastIndex
     }
 
-    let remainder = content.slice(lastIndex)
+    const remainder = content.slice(lastIndex)
 
     // Hide incomplete mermaid fences while the message is still streaming.
     if (isStreaming) {
@@ -74,9 +73,7 @@ export function ChatThread({ messages, isLoading }: ChatThreadProps) {
         if (!afterOpen.includes("```")) {
           if (openFence > 0) {
             parts.push(
-              <span key={id++} className="whitespace-pre-wrap">
-                {remainder.slice(0, openFence)}
-              </span>
+              <MarkdownMessage key={id++} content={remainder.slice(0, openFence)} />
             )
           }
           parts.push(<MermaidDiagram key={id++} code="" deferRender />)
@@ -86,11 +83,7 @@ export function ChatThread({ messages, isLoading }: ChatThreadProps) {
     }
 
     if (remainder) {
-      parts.push(
-        <span key={id++} className="whitespace-pre-wrap">
-          {remainder}
-        </span>
-      )
+      parts.push(<MarkdownMessage key={id++} content={remainder} />)
     }
 
     return parts
@@ -106,14 +99,20 @@ export function ChatThread({ messages, isLoading }: ChatThreadProps) {
               {msg.role === "user" ? "You" : "BaseCase"}
             </span>
             <div
-              className={`max-w-[88%] text-xs leading-relaxed px-3 py-2.5 rounded-xl ${msg.role === "user"
+              className={`max-w-[88%] text-[13px] leading-relaxed px-3 py-2.5 rounded-xl ${msg.role === "user"
                 ? "bg-violet-600 dark:bg-violet-600 text-white rounded-br-sm"
                 : "bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-100 rounded-bl-sm border border-zinc-200 dark:border-zinc-700"
                 }`}
             >
-              {msg.role === "assistant" && msg.content.includes("```mermaid")
-                ? parseContentWithMermaid(msg.content, Boolean(msg.isStreaming))
-                : <span className="whitespace-pre-wrap">{msg.content}</span>}
+              {msg.role === "user" ? (
+                <span className="whitespace-pre-wrap font-serif text-[15px] leading-relaxed">
+                  {msg.content}
+                </span>
+              ) : msg.content.includes("```mermaid") ? (
+                parseContentWithMermaid(msg.content, Boolean(msg.isStreaming))
+              ) : (
+                <MarkdownMessage content={msg.content} />
+              )}
 
               {msg.isStreaming && (
                 <span className="inline-block w-0.5 h-3 bg-zinc-500 dark:bg-zinc-400 ml-0.5 align-middle animate-pulse" />

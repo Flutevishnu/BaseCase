@@ -1,13 +1,19 @@
 import type { Metadata } from "next"
 import { ClerkProvider } from "@clerk/nextjs"
-import { Geist, Geist_Mono } from "next/font/google"
+import { Inter, Newsreader, Geist_Mono } from "next/font/google"
 import "./globals.css"
 import { Header } from "@/components/layout/Header"
 import { ThemeProvider } from "@/components/providers/ThemeProvider"
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
+})
+
+const newsreader = Newsreader({
+  variable: "--font-newsreader",
+  subsets: ["latin"],
+  style: ["normal", "italic"],
 })
 
 const geistMono = Geist_Mono({
@@ -27,7 +33,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased min-h-screen`}>
+      <body className={`${inter.variable} ${newsreader.variable} ${geistMono.variable} font-sans antialiased min-h-screen`}>
         <ClerkProvider>
           <ThemeProvider>
             <div className="h-screen flex flex-col bg-zinc-50 dark:bg-zinc-950 transition-colors">
