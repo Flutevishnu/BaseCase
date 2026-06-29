@@ -14,6 +14,7 @@ export const USER_MESSAGES = {
   reviewEmpty:
     "Your review isn't ready yet. Please submit again.",
   genericTryAgain: "Something went wrong. Please try again.",
+  diagramUnavailable: "This diagram couldn't be displayed.",
 } as const
 
 export async function readApiErrorMessage(

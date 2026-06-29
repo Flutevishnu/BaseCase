@@ -39,7 +39,7 @@ export function ChatThread({ messages, isLoading }: ChatThreadProps) {
   const hasStreamingMessage = messages.some((m) => m.isStreaming)
   const showDots = isLoading && !hasStreamingMessage
 
-  const parseContentWithMermaid = (content: string) => {
+  const parseContentWithMermaid = (content: string, isStreaming: boolean) => {
     const parts = []
     const regex = /```mermaid\n([\s\S]*?)```/g
     let lastIndex = 0
@@ -54,14 +54,41 @@ export function ChatThread({ messages, isLoading }: ChatThreadProps) {
           </span>
         )
       }
-      parts.push(<MermaidDiagram key={id++} code={match[1].trim()} />)
+      parts.push(
+        <MermaidDiagram
+          key={id++}
+          code={match[1].trim()}
+          deferRender={isStreaming}
+        />
+      )
       lastIndex = regex.lastIndex
     }
 
-    if (lastIndex < content.length) {
+    let remainder = content.slice(lastIndex)
+
+    // Hide incomplete mermaid fences while the message is still streaming.
+    if (isStreaming) {
+      const openFence = remainder.indexOf("```mermaid")
+      if (openFence !== -1) {
+        const afterOpen = remainder.slice(openFence + "```mermaid".length)
+        if (!afterOpen.includes("```")) {
+          if (openFence > 0) {
+            parts.push(
+              <span key={id++} className="whitespace-pre-wrap">
+                {remainder.slice(0, openFence)}
+              </span>
+            )
+          }
+          parts.push(<MermaidDiagram key={id++} code="" deferRender />)
+          return parts
+        }
+      }
+    }
+
+    if (remainder) {
       parts.push(
         <span key={id++} className="whitespace-pre-wrap">
-          {content.slice(lastIndex)}
+          {remainder}
         </span>
       )
     }
@@ -85,7 +112,7 @@ export function ChatThread({ messages, isLoading }: ChatThreadProps) {
                 }`}
             >
               {msg.role === "assistant" && msg.content.includes("```mermaid")
-                ? parseContentWithMermaid(msg.content)
+                ? parseContentWithMermaid(msg.content, Boolean(msg.isStreaming))
                 : <span className="whitespace-pre-wrap">{msg.content}</span>}
 
               {msg.isStreaming && (
