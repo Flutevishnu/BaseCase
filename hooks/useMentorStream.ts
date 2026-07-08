@@ -254,7 +254,6 @@ export function useMentorStream(
         body: JSON.stringify({
           threadId,
           code,
-          problemDescription,
         }),
       })
 

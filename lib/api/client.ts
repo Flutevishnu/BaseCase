@@ -1,7 +1,6 @@
 import { auth } from "@clerk/nextjs/server"
 
-export const BACKEND_API_URL =
-  process.env.BACKEND_API_URL || "http://127.0.0.1:3001"
+export const BACKEND_API_URL = process.env.BACKEND_API_URL
 
 export async function getBackendAuthHeaders(): Promise<HeadersInit> {
   const { getToken } = await auth()

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { requireAuth } from "@/lib/auth/require-auth"
 import { createOrResumeSession } from "@/lib/api/sessions"
+import { langgraphClient } from "@/lib/langgraph/client"
 import { devError } from "@/lib/logger"
 import { USER_MESSAGES } from "@/lib/messages/user-messages"
 interface RouteParams {
@@ -17,14 +18,12 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
   try {
     const { problemId } = await params
 
-    // restart is the only client-controllable field; clerkUserId is injected
-    // server-side from the verified session so it can't be spoofed.
     let restart = false
     try {
       const body = await request.json()
       restart = Boolean(body?.restart)
     } catch {
-      // no body provided — default restart = false
+
     }
 
     const { threadId, isNew } = await createOrResumeSession({

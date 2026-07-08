@@ -188,11 +188,10 @@ export default function ProblemsPage() {
         <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setSelectedDifficulty(null)}
-            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
-              selectedDifficulty === null
-                ? "bg-violet-600 text-white"
-                : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700"
-            }`}
+            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${selectedDifficulty === null
+              ? "bg-violet-600 text-white"
+              : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700"
+              }`}
           >
             All levels
           </button>
@@ -200,11 +199,10 @@ export default function ProblemsPage() {
             <button
               key={difficulty}
               onClick={() => setSelectedDifficulty(difficulty)}
-              className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
-                selectedDifficulty === difficulty
-                  ? "bg-violet-600 text-white"
-                  : `${difficultyStyles[difficulty]} hover:opacity-80`
-              }`}
+              className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${selectedDifficulty === difficulty
+                ? "bg-violet-600 text-white"
+                : `${difficultyStyles[difficulty]} hover:opacity-80`
+                }`}
             >
               {difficulty}
             </button>
@@ -219,11 +217,10 @@ export default function ProblemsPage() {
         <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setSelectedCategory(null)}
-            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
-              selectedCategory === null
-                ? "bg-violet-600 text-white"
-                : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700"
-            }`}
+            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${selectedCategory === null
+              ? "bg-violet-600 text-white"
+              : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700"
+              }`}
           >
             All topics
           </button>
@@ -231,11 +228,10 @@ export default function ProblemsPage() {
             <button
               key={category}
               onClick={() => setSelectedCategory(category)}
-              className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
-                selectedCategory === category
-                  ? "bg-violet-600 text-white"
-                  : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700"
-              }`}
+              className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${selectedCategory === category
+                ? "bg-violet-600 text-white"
+                : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700"
+                }`}
             >
               {category}
             </button>

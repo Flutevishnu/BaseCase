@@ -15,7 +15,6 @@ export async function POST(req: NextRequest) {
     const {
       threadId,
       code,
-      problemDescription,
     } = await req.json()
 
     if (!threadId || !code) {
@@ -32,29 +31,36 @@ export async function POST(req: NextRequest) {
       metadata: { userId },
     })
 
-    // Submit code for review (non-streaming, returns structured output)
-    const stateValues = await langgraphClient.runs.wait(threadId, LANGGRAPH_ASSISTANT_ID, {
+    const webhookUrl = `${process.env.BACKEND_API_URL}/api/v1/webhooks/evaluations`
+
+    // Submit code for review (streaming)
+    const stream = await langgraphClient.runs.stream(threadId, LANGGRAPH_ASSISTANT_ID, {
       input: {
         messages: [{ type: "human", content: "Here is my Latest Code Submission" }],
-        problem_description: problemDescription,
-        current_phase: "CODING",
         code_submission: code,
       },
-    }) as Record<string, unknown>
+      streamMode: "values",
+      webhook: webhookUrl,
+    });
 
-    const review = stateValues?.review || {
+    let review = {
       correctness: "No feedback provided",
       complexity: "No feedback provided",
       style: "No feedback provided",
       improvement: "No feedback provided",
-    }
+    };
+    let phase = undefined;
+    let stateValues: any = {};
 
-    const phase =
-      stateValues?.current_phase === "IDEATION" ||
-      stateValues?.current_phase === "CODING" ||
-      stateValues?.current_phase === "REVIEW"
-        ? stateValues.current_phase
-        : undefined
+    for await (const chunk of stream) {
+      const data = chunk.data as any; // Cast to any to bypass TS strict mode
+      if (data && data.review) {
+        review = data.review;
+        stateValues = data;
+        phase = data.current_phase;
+        break; // Return instantly to the client, let extractor_node run in background
+      }
+    }
 
     return NextResponse.json({
       success: true,
