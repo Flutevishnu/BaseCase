@@ -43,6 +43,7 @@ export function Workspace({
   const { hydrateFromThread } = stream
   const setThreadId = useSessionStore((s) => s.setThreadId)
   const setPhase = useSessionStore((s) => s.setPhase)
+  const setCode = useSessionStore((s) => s.setCode)
   const [sessionError, setSessionError] = useState<string | null>(null)
   const [historyLoading, setHistoryLoading] = useState(false)
   const [bootstrapKey, setBootstrapKey] = useState(0)
@@ -55,7 +56,8 @@ export function Workspace({
     setSessionError(null)
     setThreadId(initialThreadId)
     setPhase(initialThreadState?.phase ?? "IDEATION")
-  }, [problem.id, initialThreadId, initialThreadState?.phase, setThreadId, setPhase, bootstrapKey])
+    setCode("")
+  }, [problem.id, initialThreadId, initialThreadState?.phase, setThreadId, setPhase, setCode, bootstrapKey])
 
   // Client-side retry — initial bootstrap runs on the server in page.tsx.
   useEffect(() => {

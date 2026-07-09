@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Ensure thread exists
+
     await langgraphClient.threads.create({
       threadId,
       ifExists: "do_nothing",
@@ -33,7 +33,6 @@ export async function POST(req: NextRequest) {
 
     const webhookUrl = `${process.env.BACKEND_API_URL}/api/v1/webhooks/evaluations`
 
-    // Submit code for review (streaming)
     const stream = await langgraphClient.runs.stream(threadId, LANGGRAPH_ASSISTANT_ID, {
       input: {
         messages: [{ type: "human", content: "Here is my Latest Code Submission" }],
