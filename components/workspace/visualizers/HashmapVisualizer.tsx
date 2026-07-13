@@ -151,9 +151,9 @@ export function HashmapVisualizer({ data }: HashmapVisualizerProps) {
             </button>
           </div>
 
-          {Object.keys(variables).length > 0 && (
+          {Object.keys(variables).filter(k => k !== "map").length > 0 && (
             <div className="flex items-center gap-3 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 px-3 py-1.5 rounded-lg text-xs font-mono">
-              {Object.entries(variables).map(([k, v]) => (
+              {Object.entries(variables).filter(([k]) => k !== "map").map(([k, v]) => (
                 <div key={k} className="flex gap-1.5">
                   <span className="text-zinc-500">{k}:</span>
                   <span className="text-violet-600 dark:text-violet-400 font-semibold">{String(v)}</span>

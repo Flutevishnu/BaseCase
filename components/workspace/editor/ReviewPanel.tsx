@@ -1,6 +1,5 @@
 "use client"
 
-import { useSessionStore } from "@/stores/sessionStore"
 import { useRouter } from "next/navigation"
 import { CodeReview } from "@/types"
 
@@ -11,7 +10,6 @@ interface ReviewPanelProps {
 }
 
 export function ReviewPanel({ reviewContent, reviewError, isStreaming }: ReviewPanelProps) {
-  const { setPhase, reset } = useSessionStore()
   const router = useRouter()
 
   const sections = parseReview(reviewContent)
@@ -64,20 +62,16 @@ export function ReviewPanel({ reviewContent, reviewError, isStreaming }: ReviewP
         )}
       </div>
 
-      <div className="px-5 py-4 border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 flex items-center gap-3 transition-colors">
+      <div className="px-5 py-4 border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 transition-colors">
         <button
-          onClick={() => router.push("/")}
+          onClick={() => router.push("/problems")}
           disabled={isStreaming}
-          className="flex-1 text-xs font-semibold py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+          className="w-full flex items-center justify-center gap-2 text-xs font-semibold py-2.5 rounded-lg bg-violet-600 text-white hover:bg-violet-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
         >
-          Home Page
-        </button>
-        <button
-          onClick={reset}
-          disabled={isStreaming}
-          className="flex-1 text-xs font-semibold py-2.5 rounded-lg bg-violet-600 dark:bg-violet-600 text-white hover:bg-violet-700 dark:hover:bg-violet-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-        >
-          New Problem
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M19 12H5M12 19l-7-7 7-7" />
+          </svg>
+          Back to Problems
         </button>
       </div>
     </div>

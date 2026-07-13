@@ -12,7 +12,7 @@ export function ArrayVisualizer({ data }: ArrayVisualizerProps) {
   const [currentStep, setCurrentStep] = useState(0)
   const [isPlaying, setIsPlaying] = useState(false)
   const steps = data.steps || []
-  const arrayData = data.data?.array || []
+  const initialArrayData = data.data?.array || []
   
   useEffect(() => {
     let interval: NodeJS.Timeout
@@ -30,13 +30,16 @@ export function ArrayVisualizer({ data }: ArrayVisualizerProps) {
     return () => clearInterval(interval)
   }, [isPlaying, steps.length])
 
-  if (!steps.length || !arrayData.length) {
+  if (!steps.length || !initialArrayData.length) {
     return <div className="text-sm text-zinc-500">Invalid visualization data</div>
   }
 
   const step: VisualizationStep = steps[currentStep]
   const highlights = step.highlights || {}
   const variables = step.variables || {}
+
+  // Use mutated array from step variables if the LLM updated it, otherwise use initial
+  const arrayData: any[] = (variables.array as any[]) ?? initialArrayData
 
   // Create a reverse mapping of index -> name for labels
   const highlightLabels: Record<number, string[]> = {}
@@ -134,10 +137,10 @@ export function ArrayVisualizer({ data }: ArrayVisualizerProps) {
             </button>
           </div>
 
-          {/* Variables Panel */}
-          {Object.keys(variables).length > 0 && (
+          {/* Variables Panel — filter out structural keys (array, grid, etc.) */}
+          {Object.keys(variables).filter(k => k !== "array").length > 0 && (
             <div className="flex items-center gap-3 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 px-3 py-1.5 rounded-lg text-xs font-mono">
-              {Object.entries(variables).map(([k, v]) => (
+              {Object.entries(variables).filter(([k]) => k !== "array").map(([k, v]) => (
                 <div key={k} className="flex gap-1.5">
                   <span className="text-zinc-500">{k}:</span>
                   <span className="text-violet-600 dark:text-violet-400 font-semibold">{String(v)}</span>

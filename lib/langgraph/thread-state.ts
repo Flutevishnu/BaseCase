@@ -35,7 +35,7 @@ function mapValuesToSessionState(values: Record<string, unknown>): ThreadSession
   }
 }
 
-/** Load the current LangGraph thread state and map it to UI session state. */
+
 export async function fetchThreadSessionState(
   threadId: string
 ): Promise<ThreadSessionState> {

@@ -12,7 +12,7 @@ export function LinkedListVisualizer({ data }: LinkedListVisualizerProps) {
   const [currentStep, setCurrentStep] = useState(0)
   const [isPlaying, setIsPlaying] = useState(false)
   const steps = data.steps || []
-  const listData = data.data?.head || []
+  const initialListData = data.data?.head || []
   
   useEffect(() => {
     let interval: NodeJS.Timeout
@@ -30,13 +30,16 @@ export function LinkedListVisualizer({ data }: LinkedListVisualizerProps) {
     return () => clearInterval(interval)
   }, [isPlaying, steps.length])
 
-  if (!steps.length || !listData.length) {
+  if (!steps.length || !initialListData.length) {
     return <div className="text-sm text-zinc-500">Invalid visualization data</div>
   }
 
   const step: VisualizationStep = steps[currentStep] || steps[0]
   const highlights = step?.highlights || {}
   const variables = step?.variables || {}
+
+  // Use mutated list from step variables if the LLM updated it, otherwise use initial
+  const listData: any[] = (variables.head as any[]) ?? initialListData
 
   const highlightLabels: Record<number, string[]> = {}
   Object.entries(highlights).forEach(([name, index]) => {
@@ -137,9 +140,9 @@ export function LinkedListVisualizer({ data }: LinkedListVisualizerProps) {
             </button>
           </div>
 
-          {Object.keys(variables).length > 0 && (
+          {Object.keys(variables).filter(k => k !== "head").length > 0 && (
             <div className="flex items-center gap-3 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 px-3 py-1.5 rounded-lg text-xs font-mono">
-              {Object.entries(variables).map(([k, v]) => (
+              {Object.entries(variables).filter(([k]) => k !== "head").map(([k, v]) => (
                 <div key={k} className="flex gap-1.5">
                   <span className="text-zinc-500">{k}:</span>
                   <span className="text-violet-600 dark:text-violet-400 font-semibold">{String(v)}</span>

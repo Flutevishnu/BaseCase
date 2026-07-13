@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
     let stateValues: any = {};
 
     for await (const chunk of stream) {
-      const data = chunk.data as any; // Cast to any to bypass TS strict mode
+      const data = chunk.data as any;
       if (data && data.review) {
         review = data.review;
         stateValues = data;

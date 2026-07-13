@@ -16,7 +16,6 @@ export interface Problem {
   constraints: string[]
 }
 
-/** Lightweight problem shape used in list views. */
 export type ProblemSummary = Pick<
   Problem,
   "id" | "title" | "difficulty" | "tags"

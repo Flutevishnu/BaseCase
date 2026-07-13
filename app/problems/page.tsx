@@ -125,7 +125,7 @@ export default function ProblemsPage() {
     }
   }, [])
 
-  // Server-side filter: reset and fetch when tag or difficulty changes
+  // filter: reset and fetch when tag or difficulty changes
   useEffect(() => {
     filtersRef.current = {
       tag: selectedCategory,

@@ -12,9 +12,15 @@ export function TreeVisualizer({ data }: TreeVisualizerProps) {
   const [currentStep, setCurrentStep] = useState(0)
   const [isPlaying, setIsPlaying] = useState(false)
   const steps = data.steps || []
-  const treeData = data.data?.root || []
+  const initialTreeData = data.data?.root || []
   const containerRef = useRef<HTMLDivElement>(null)
   const [lines, setLines] = useState<{x1:number, y1:number, x2:number, y2:number}[]>([])
+
+  // Compute step data early so effects can use current tree structure
+  const step = steps[currentStep] || steps[0]
+  const highlights = step?.highlights || {}
+  const variables = step?.variables || {}
+  const currentTreeData: any[] = (variables.root as any[]) ?? initialTreeData
   
   useEffect(() => {
     let interval: NodeJS.Timeout
@@ -39,15 +45,15 @@ export function TreeVisualizer({ data }: TreeVisualizerProps) {
       const containerRect = containerRef.current.getBoundingClientRect()
       const newLines: {x1:number, y1:number, x2:number, y2:number}[] = []
       
-      for (let i = 0; i < treeData.length; i++) {
-        if (treeData[i] === null || treeData[i] === undefined) continue
+      for (let i = 0; i < currentTreeData.length; i++) {
+        if (currentTreeData[i] === null || currentTreeData[i] === undefined) continue
         const parentEl = containerRef.current.querySelector(`[data-idx="${i}"]`)
         
         const leftIdx = 2 * i + 1
         const rightIdx = 2 * i + 2
         
         const checkChild = (childIdx: number) => {
-          if (childIdx < treeData.length && treeData[childIdx] !== null && treeData[childIdx] !== undefined) {
+          if (childIdx < currentTreeData.length && currentTreeData[childIdx] !== null && currentTreeData[childIdx] !== undefined) {
              const childEl = containerRef.current!.querySelector(`[data-idx="${childIdx}"]`)
              if (parentEl && childEl) {
                const pRect = parentEl.getBoundingClientRect()
@@ -74,15 +80,11 @@ export function TreeVisualizer({ data }: TreeVisualizerProps) {
       clearTimeout(id)
       window.removeEventListener("resize", updateLines)
     }
-  }, [treeData, currentStep]) // Re-run when step changes in case node sizes change due to highlights
+  }, [currentTreeData, currentStep]) // Re-run when step changes in case node sizes change due to highlights
 
-  if (!steps.length || !treeData.length) {
+  if (!steps.length || !initialTreeData.length) {
     return <div className="text-sm text-zinc-500">Invalid visualization data</div>
   }
-
-  const step: VisualizationStep = steps[currentStep] || steps[0]
-  const highlights = step?.highlights || {}
-  const variables = step?.variables || {}
 
   const highlightLabels: Record<number, string[]> = {}
   Object.entries(highlights).forEach(([name, index]) => {
@@ -91,11 +93,11 @@ export function TreeVisualizer({ data }: TreeVisualizerProps) {
   })
 
   const renderNode = (idx: number) => {
-    if (idx >= treeData.length || treeData[idx] === null || treeData[idx] === undefined) {
+    if (idx >= currentTreeData.length || currentTreeData[idx] === null || currentTreeData[idx] === undefined) {
       return <div className="w-10 h-10 opacity-0 m-2"></div>
     }
 
-    const val = treeData[idx]
+    const val = currentTreeData[idx]
     const labels = highlightLabels[idx] || []
     const isHighlighted = labels.length > 0
     const bgColor = isHighlighted 
@@ -104,8 +106,8 @@ export function TreeVisualizer({ data }: TreeVisualizerProps) {
 
     const leftIdx = 2 * idx + 1
     const rightIdx = 2 * idx + 2
-    const hasChildren = (leftIdx < treeData.length && treeData[leftIdx] !== null) || 
-                        (rightIdx < treeData.length && treeData[rightIdx] !== null)
+    const hasChildren = (leftIdx < currentTreeData.length && currentTreeData[leftIdx] !== null) || 
+                        (rightIdx < currentTreeData.length && currentTreeData[rightIdx] !== null)
 
     return (
       <div key={idx} className="flex flex-col items-center mx-1 sm:mx-2">
@@ -188,9 +190,9 @@ export function TreeVisualizer({ data }: TreeVisualizerProps) {
             </button>
           </div>
 
-          {Object.keys(variables).length > 0 && (
+          {Object.keys(variables).filter(k => k !== "root").length > 0 && (
             <div className="flex items-center gap-3 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 px-3 py-1.5 rounded-lg text-xs font-mono">
-              {Object.entries(variables).map(([k, v]) => (
+              {Object.entries(variables).filter(([k]) => k !== "root").map(([k, v]) => (
                 <div key={k} className="flex gap-1.5">
                   <span className="text-zinc-500">{k}:</span>
                   <span className="text-violet-600 dark:text-violet-400 font-semibold">{String(v)}</span>

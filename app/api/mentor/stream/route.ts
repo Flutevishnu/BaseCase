@@ -28,11 +28,11 @@ export async function POST(req: NextRequest) {
     async start(controller) {
       try {
         // Ensure thread exists before streaming
-        await langgraphClient.threads.create({
-          threadId,
-          ifExists: "do_nothing",
-          metadata: { userId },
-        })
+        // await langgraphClient.threads.create({
+        //   threadId,
+        //   ifExists: "do_nothing",
+        //   metadata: { userId },
+        // })
 
         const runStream = langgraphClient.runs.stream(threadId, LANGGRAPH_ASSISTANT_ID, {
           input,
@@ -40,14 +40,12 @@ export async function POST(req: NextRequest) {
         })
 
         for await (const chunk of runStream) {
-          // Proper SSE format: data: {...}\n\n
           controller.enqueue(
             encoder.encode(`data: ${JSON.stringify(chunk)}\n\n`)
           )
         }
       } catch (err) {
         devError("[stream]", err)
-        // Send the error as a final chunk so the client knows something went wrong
         controller.enqueue(
           encoder.encode(
             `data: ${JSON.stringify({ event: "error", data: { message: String(err) } })}\n\n`

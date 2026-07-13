@@ -94,7 +94,6 @@ export function useMentorStream(
           buffer = lines.pop() || "" // Keep incomplete line in buffer
 
           for (const line of lines) {
-            // Check for proper SSE data: prefix
             if (!line.trim() || !line.startsWith("data: ")) continue
 
             const dataStr = line.slice(6) // Remove "data: "
@@ -112,11 +111,7 @@ export function useMentorStream(
                 }>
 
                 // Find the AI message chunk
-                const aiPart = parts?.find((d) =>
-                  d.type === "ai" ||
-                  d.type === "AIMessageChunk" ||
-                  d.type === "AIMessage"
-                )
+                const aiPart = parts?.find((d) => d.type === "ai")
                 if (!aiPart) continue
 
                 const text =
@@ -309,3 +304,6 @@ export function useMentorStream(
     hydrateFromThread,
   }
 }
+
+
+
