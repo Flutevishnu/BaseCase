@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
       metadata: { userId },
     })
 
-    const webhookUrl = `${process.env.BACKEND_API_URL}/api/v1/webhooks/evaluations`
+    const webhookUrl = `${process.env.BACKEND_API_URL}/api/webhooks/evaluations`
 
     const stream = await langgraphClient.runs.stream(threadId, LANGGRAPH_ASSISTANT_ID, {
       input: {
