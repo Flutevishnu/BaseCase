@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { Loader2 } from "lucide-react"
 import { Problem, ThreadSessionState } from "@/types"
 import { useMentorStream } from "@/hooks/useMentorStream"
 import { useSessionStore } from "@/stores/sessionStore"
@@ -47,6 +48,11 @@ export function Workspace({
   const [sessionError, setSessionError] = useState<string | null>(null)
   const [historyLoading, setHistoryLoading] = useState(false)
   const [bootstrapKey, setBootstrapKey] = useState(0)
+  const [isMounted, setIsMounted] = useState(false)
+
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
 
   const retrySession = () => setBootstrapKey((key) => key + 1)
 
@@ -126,6 +132,15 @@ export function Workspace({
       cancelled = true
     }
   }, [problem.id, setThreadId, bootstrapKey, hydrateFromThread])
+
+  if (!isMounted) {
+    return (
+      <div className="h-full w-full flex flex-col items-center justify-center bg-zinc-50 dark:bg-zinc-950">
+        <Loader2 className="h-8 w-8 animate-spin text-zinc-400 mb-4" />
+        <p className="text-sm text-zinc-500 font-medium">Loading workspace...</p>
+      </div>
+    )
+  }
 
   return (
     <div className="h-full w-full overflow-hidden">
