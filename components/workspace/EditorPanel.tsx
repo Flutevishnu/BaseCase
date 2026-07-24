@@ -60,7 +60,7 @@ export function EditorPanel({ problem, stream }: EditorPanelProps) {
       {/* Phase-driven content */}
       {phase === "IDEATION" && <LockedOverlay />}
       {phase === "CODING" && (
-        <CodeEditor onSubmit={submitCode} isLoading={isLoading} isReviewing={isReviewLoading} />
+        <CodeEditor onSubmit={submitCode} isLoading={isLoading} isReviewing={isReviewLoading} reviewError={reviewError} />
       )}
       {phase === "REVIEW" && (
         <ReviewPanel reviewContent={reviewContent} reviewError={reviewError} isStreaming={isReviewLoading} />

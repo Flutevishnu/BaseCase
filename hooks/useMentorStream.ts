@@ -80,10 +80,11 @@ export function useMentorStream(
           throw new Error("No response body")
         }
 
-        // Parse newline-delimited JSON stream
+        // Parse standard Server-Sent Events stream
         const reader = response.body.getReader()
         const decoder = new TextDecoder()
         let buffer = ""
+        let currentEvent = ""
 
         while (true) {
           const { done, value } = await reader.read()
@@ -94,17 +95,26 @@ export function useMentorStream(
           buffer = lines.pop() || "" // Keep incomplete line in buffer
 
           for (const line of lines) {
-            if (!line.trim() || !line.startsWith("data: ")) continue
+            const trimmed = line.trim()
+            if (!trimmed) continue
 
-            const dataStr = line.slice(6) // Remove "data: "
+            if (trimmed.startsWith("event: ")) {
+              currentEvent = trimmed.slice(7).trim()
+              continue
+            }
+
+            if (!trimmed.startsWith("data: ")) continue
+
+            const dataStr = trimmed.slice(6).trim()
             if (dataStr === "[DONE]") continue
 
             try {
-              const chunk = JSON.parse(dataStr)
+              const chunkData = JSON.parse(dataStr)
+              console.log("[stream] Event:", currentEvent)
 
-              // messages/partial: server sends the FULL accumulated content so far
-              if (chunk.event === "messages/partial") {
-                const parts = chunk.data as Array<{
+              // messages/partial or messages: server sends the FULL accumulated content so far
+              if (currentEvent === "messages/partial" || currentEvent === "messages") {
+                const parts = chunkData as Array<{
                   type?: string
                   content?: string | Array<{ type?: string; text?: string }>
                   tool_calls?: Array<{ name: string; args: any }>
@@ -150,8 +160,8 @@ export function useMentorStream(
               }
 
               // values: full graph state — sync phase transitions and catch manual messages
-              if (chunk.event === "values") {
-                const vals = chunk.data as { current_phase?: string, messages?: any[] }
+              if (currentEvent === "values") {
+                const vals = chunkData as { current_phase?: string, messages?: any[] }
                 const newPhase = vals?.current_phase as MentorPhase | undefined
                 if (newPhase && newPhase !== phase) {
                   setPhase(newPhase)
@@ -257,12 +267,35 @@ export function useMentorStream(
       if (!response.ok) {
         const message = await readApiErrorMessage(response, USER_MESSAGES.reviewFailed)
         setReviewError(message)
-        setPhase("REVIEW")
         return
       }
 
       const data = await response.json()
       const review = data.review as CodeReview | undefined
+
+      const agentPhase = data.phase as MentorPhase | undefined
+      if (
+        agentPhase === "IDEATION" ||
+        agentPhase === "CODING" ||
+        agentPhase === "REVIEW"
+      ) {
+        setPhase(agentPhase)
+      }
+
+      if (agentPhase === "CODING") {
+        // The code was rejected. Extract the feedback message and show it in the chat!
+        const msgs = data.data?.messages
+        if (Array.isArray(msgs) && msgs.length > 0) {
+          const lastMsg = msgs[msgs.length - 1]
+          if (lastMsg && (lastMsg.type === "ai" || lastMsg.type === "AIMessage" || lastMsg.id?.startsWith("AIMessage"))) {
+            const text = typeof lastMsg.content === "string" ? lastMsg.content : ""
+            if (text) {
+              setMessages((prev) => [...prev, { role: "assistant", content: text, isStreaming: false }])
+            }
+          }
+        }
+        return
+      }
 
       const hasContent =
         !!review &&
@@ -274,19 +307,9 @@ export function useMentorStream(
         devWarn("[submit] empty review", data)
         setReviewError(USER_MESSAGES.reviewEmpty)
       }
-
-      const agentPhase = data.phase as MentorPhase | undefined
-      if (
-        agentPhase === "IDEATION" ||
-        agentPhase === "CODING" ||
-        agentPhase === "REVIEW"
-      ) {
-        setPhase(agentPhase)
-      }
     } catch (err) {
       devError("[submit]", err)
       setReviewError(USER_MESSAGES.reviewFailed)
-      setPhase("REVIEW")
     } finally {
       setIsReviewLoading(false)
     }

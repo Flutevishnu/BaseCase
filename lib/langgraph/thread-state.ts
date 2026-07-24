@@ -1,4 +1,4 @@
-import { langgraphClient } from "@/lib/langgraph/client"
+import { backendFetch } from "@/lib/api/client"
 import { mapLangGraphMessages } from "@/lib/langgraph/messages"
 import { CodeReview, MentorPhase, ThreadSessionState } from "@/types"
 
@@ -35,11 +35,19 @@ function mapValuesToSessionState(values: Record<string, unknown>): ThreadSession
   }
 }
 
-
 export async function fetchThreadSessionState(
   threadId: string
 ): Promise<ThreadSessionState> {
-  const state = await langgraphClient.threads.getState(threadId)
+  const response = await backendFetch(`/sessions/${encodeURIComponent(threadId)}/state`)
+  
+  if (!response.ok) {
+    if (response.status === 404) {
+      return mapValuesToSessionState({})
+    }
+    throw new Error(`Failed to fetch session state: ${response.status}`)
+  }
+
+  const state = await response.json()
   const values = (state.values ?? {}) as Record<string, unknown>
   return mapValuesToSessionState(values)
 }

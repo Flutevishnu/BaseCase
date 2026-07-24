@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server"
 import { requireAuth } from "@/lib/auth/require-auth"
 import { devError } from "@/lib/logger"
-import { langgraphClient, LANGGRAPH_ASSISTANT_ID } from "@/lib/langgraph/client"
+import { auth } from "@clerk/nextjs/server"
 
 export async function POST(req: NextRequest) {
   const authResult = await requireAuth()
@@ -20,50 +20,39 @@ export async function POST(req: NextRequest) {
     })
   }
 
-  const encoder = new TextEncoder()
+  try {
+    const baseUrl = process.env.BACKEND_API_URL || "http://localhost:8080";
+    const gatewayUrl = `${baseUrl}/api/v1/evaluations/stream`;
+    const { getToken } = await auth();
+    const token = await getToken();
 
-  // Return the Response immediately — browser gets headers right away.
-  // All async work (thread creation + streaming) happens inside start().
-  const stream = new ReadableStream({
-    async start(controller) {
-      try {
-        // Ensure thread exists before streaming
-        // await langgraphClient.threads.create({
-        //   threadId,
-        //   ifExists: "do_nothing",
-        //   metadata: { userId },
-        // })
+    const response = await fetch(gatewayUrl, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        threadId: threadId,
+        input: input
+      })
+    });
 
-        const runStream = langgraphClient.runs.stream(threadId, LANGGRAPH_ASSISTANT_ID, {
-          input,
-          streamMode: ["messages", "values"],
-        })
+    if (!response.body) throw new Error("No response body from Gateway");
 
-        for await (const chunk of runStream) {
-          controller.enqueue(
-            encoder.encode(`data: ${JSON.stringify(chunk)}\n\n`)
-          )
-        }
-      } catch (err) {
-        devError("[stream]", err)
-        controller.enqueue(
-          encoder.encode(
-            `data: ${JSON.stringify({ event: "error", data: { message: String(err) } })}\n\n`
-          )
-        )
-      } finally {
-        controller.close()
-      }
-    },
-  })
-
-  return new Response(stream, {
-    headers: {
-      "Content-Type": "text/event-stream",
-      // Prevent any proxy or Next.js middleware from buffering the stream
-      "Cache-Control": "no-cache, no-store, no-transform",
-      "X-Accel-Buffering": "no",
-      "Connection": "keep-alive",
-    },
-  })
+    return new Response(response.body, {
+      headers: {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache, no-store, no-transform",
+        "X-Accel-Buffering": "no",
+        "Connection": "keep-alive",
+      },
+    })
+  } catch (err) {
+    devError("[stream]", err)
+    return new Response(
+      `data: ${JSON.stringify({ event: "error", data: { message: String(err) } })}\n\n`,
+      { headers: { "Content-Type": "text/event-stream" } }
+    )
+  }
 }

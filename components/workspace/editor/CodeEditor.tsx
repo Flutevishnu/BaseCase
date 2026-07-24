@@ -11,6 +11,7 @@ interface CodeEditorProps {
   onSubmit: () => void
   isLoading: boolean
   isReviewing: boolean
+  reviewError?: string | null
 }
 
 const DEFAULT_CODE = `from typing import List
@@ -21,7 +22,7 @@ class Solution:
         pass
 `
 
-export function CodeEditor({ onSubmit, isLoading, isReviewing }: CodeEditorProps) {
+export function CodeEditor({ onSubmit, isLoading, isReviewing, reviewError }: CodeEditorProps) {
   const { code, setCode } = useSessionStore()
   const { theme } = useTheme()
   const [mounted, setMounted] = useState(false)
@@ -92,25 +93,36 @@ export function CodeEditor({ onSubmit, isLoading, isReviewing }: CodeEditorProps
               <span className="w-2 h-2 rounded-full bg-emerald-500" />
               Python 3
             </div>
-            <button
-              onClick={onSubmit}
-              disabled={isLoading || !code?.trim()}
-              className="flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-lg bg-violet-600 text-white hover:bg-violet-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-95"
-            >
-              {isReviewing ? (
-                <>
-                  <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Reviewing...
-                </>
-              ) : (
-                <>
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  Submit for Review
-                </>
+            <div className="flex items-center gap-4">
+              {reviewError && (
+                <span className="text-xs text-red-500 font-medium">
+                  {reviewError}
+                </span>
               )}
-            </button>
+              <button
+                onClick={onSubmit}
+                disabled={isLoading || !code?.trim()}
+                className={`flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-lg text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-95 ${
+                  reviewError 
+                    ? "bg-red-600 hover:bg-red-700" 
+                    : "bg-violet-600 hover:bg-violet-700"
+                }`}
+              >
+                {isReviewing ? (
+                  <>
+                    <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Reviewing...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={reviewError ? "M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" : "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"} />
+                    </svg>
+                    {reviewError ? "Retry Submit" : "Submit for Review"}
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </>
       )}
