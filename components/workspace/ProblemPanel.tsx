@@ -2,6 +2,7 @@
 
 import { Problem } from "@/types"
 import { useSessionStore } from "@/stores/sessionStore"
+import { ProblemDescription } from "./ProblemDescription"
 
 interface ProblemPanelProps {
   problem: Problem
@@ -49,12 +50,8 @@ export function ProblemPanel({ problem }: ProblemPanelProps) {
           </div>
         </div>
 
-        {/* Description */}
-        <div>
-          <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
-            {problem.description}
-          </p>
-        </div>
+        {/* Description (Markdown) */}
+        <ProblemDescription markdown={problem.description} />
 
         {/* Examples */}
         {problem.examples.length > 0 && (
