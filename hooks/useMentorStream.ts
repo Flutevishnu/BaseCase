@@ -236,13 +236,14 @@ export function useMentorStream(
       }
 
       setMessages((prev) => [...prev, { role: "user", content }])
+      // Don't send current_phase: the agent owns the phase, and a stale client
+      // value (e.g. a second tab) would overwrite it in the thread state.
       runStream({
         messages: [{ type: "human", content: streamContent }],
         problem_description: problemDescription,
-        current_phase: phase,
       })
     },
-    [runStream, isLoading, phase, problemDescription, code]
+    [runStream, isLoading, problemDescription, code]
   )
 
   const submitCode = useCallback(async () => {
