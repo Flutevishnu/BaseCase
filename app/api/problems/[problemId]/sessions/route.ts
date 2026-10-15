@@ -24,7 +24,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     const { getToken } = await auth();
     const token = await getToken();
-    const gatewayUrl = `${process.env.BACKEND_API_URL || "http://localhost:8080/api/v1"}/sessions`;
+    const gatewayUrl = `${process.env.BACKEND_API_URL}/api/v1/sessions`;
 
     const response = await fetch(gatewayUrl, {
       method: "POST",
